@@ -14,13 +14,19 @@ guardan en el dispositivo (localStorage) y sobreviven al cerrar y volver a abrir
 ⚠️ Importante: que lo abra siempre desde el mismo lugar (el mismo archivo /
 ícono), porque los datos quedan asociados a esa ubicación.
 
-## Opción con instalación real de app (PWA, gratis, sin comprar dominio)
+## App instalable (PWA) — YA PUBLICADA ✓
 
-Subí los 4 archivos (`TEXMA.html` renombrado a `index.html`, `manifest.json`,
-`sw.js`, `icon.svg`) a **GitHub Pages** (repositorio público → Settings →
-Pages). GitHub te da una URL gratis tipo `https://tuusuario.github.io/texma/`.
-Abriéndola en Chrome del celu aparece **"Instalar app"**: funciona 100% offline
-después de la primera visita y con ícono propio.
+La app está en línea, gratis y sin dominio propio:
+
+**https://sommimarket.github.io/texma/**
+
+En el celu: abrir esa URL en **Chrome** → menú ⋮ → **"Instalar app"**
+(o "Agregar a pantalla de inicio"). Queda con el ícono rosa de TEXMA y
+funciona 100% offline después de la primera visita.
+
+Repo: https://github.com/sommimarket/texma (cuenta `sommimarket`).
+Para actualizar la app: editar los archivos, subir el `CACHE` de `sw.js`
+(`texma-v1` → `texma-v2`, etc.) y hacer `git push`.
 
 ## Qué tiene
 
