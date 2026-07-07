@@ -1,0 +1,1271 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>TEXMA · Planner</title>
+<meta name="theme-color" content="#F3EEE5">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,500;1,600;1,700&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#FAF7F1; --linen:#F3EEE5; --ink:#2B2622; --ink2:#75695C; --line:#E4DCCD;
+  --r:18px; --nav-h:64px;
+  --serif:'Cormorant Garamond',Georgia,serif;
+  --sans:'Manrope',system-ui,sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,monospace;
+}
+body[data-pal="greige"]{--tint:#E9E2D6;--mid:#B7AA92;--deep:#8C7F68;--aink:#5C5344}
+body[data-pal="sage"]  {--tint:#E1E8DB;--mid:#9DB08F;--deep:#6F8461;--aink:#49563F}
+body[data-pal="lav"]   {--tint:#E7E1EF;--mid:#A99BC4;--deep:#7C6E9C;--aink:#544870}
+body[data-pal="sky"]   {--tint:#DEE9EE;--mid:#92B4C4;--deep:#5F8598;--aink:#3D5A6A}
+body[data-pal="blush"] {--tint:#F1E0DE;--mid:#D0A3A0;--deep:#A97270;--aink:#794E4C}
+body[data-pal="clay"]  {--tint:#EFE1D4;--mid:#C79A76;--deep:#9C6F4B;--aink:#6C4A2F}
+
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth}
+body{
+  background:var(--linen);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.45;
+  min-height:100dvh;
+}
+body::after{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:200;opacity:.05;mix-blend-mode:multiply;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+#app{max-width:560px;margin:0 auto;padding:0 16px calc(var(--nav-h) + 96px);min-height:100dvh}
+
+/* ---------- top bar ---------- */
+#top{
+  display:flex;align-items:baseline;justify-content:space-between;
+  padding:calc(14px + env(safe-area-inset-top)) 2px 6px;
+}
+#top .brand{font-family:var(--serif);font-style:italic;font-weight:700;font-size:26px;letter-spacing:.5px}
+#top .brand em{color:var(--deep);font-style:italic}
+#topdate{font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--ink2)}
+
+/* ---------- type ---------- */
+h1.vt{font-family:var(--serif);font-style:italic;font-weight:600;font-size:30px;margin:10px 2px 14px}
+.lbl{font-family:var(--mono);font-size:10px;letter-spacing:1.6px;text-transform:uppercase;color:var(--ink2);margin:0 2px 8px}
+.mono{font-family:var(--mono)}
+.muted{color:var(--ink2)}
+.small{font-size:12px}
+
+/* ---------- cards / lists ---------- */
+.card{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);padding:15px 16px;box-shadow:0 1px 2px rgba(43,38,34,.04)}
+.vc{margin-bottom:14px}
+.item{display:flex;align-items:center;gap:12px;padding:11px 2px;border-bottom:1px solid var(--line)}
+.item:last-child{border-bottom:none}
+.item .grow{flex:1;min-width:0}
+.item .t{font-weight:600;overflow:hidden;text-overflow:ellipsis}
+.item .s{font-size:12px;color:var(--ink2);font-family:var(--mono)}
+.item.done .t{text-decoration:line-through;color:var(--ink2);font-weight:500}
+.pill{font-family:var(--mono);font-size:10px;letter-spacing:.6px;padding:3px 9px;border-radius:99px;background:var(--tint);color:var(--aink);white-space:nowrap}
+.pill.warn{background:#F3E3D3;color:#8A5A2B}
+.empty{color:var(--ink2);font-size:13px;padding:14px 2px;text-align:center;font-style:italic;font-family:var(--serif);font-size:17px}
+
+/* ---------- checkbox ---------- */
+.cb{
+  width:26px;height:26px;min-width:26px;border-radius:9px;border:1.6px solid var(--mid);
+  background:var(--paper);display:grid;place-items:center;cursor:pointer;transition:background .15s,border-color .15s;
+}
+.cb svg{width:15px;height:15px;stroke:var(--paper);stroke-width:3;fill:none;stroke-linecap:round;stroke-linejoin:round;opacity:0;transform:scale(.5);transition:opacity .15s,transform .2s}
+.cb.on{background:var(--deep);border-color:var(--deep)}
+.cb.on svg{opacity:1;transform:scale(1)}
+
+/* ---------- buttons / chips / seg ---------- */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--line);
+  background:var(--paper);color:var(--ink);font-family:var(--sans);font-weight:700;font-size:14px;
+  padding:12px 18px;border-radius:14px;cursor:pointer;width:100%;
+}
+.btn.primary{background:var(--deep);border-color:var(--deep);color:var(--paper)}
+.btn.ghost{background:transparent}
+.btn.danger{color:#9C3B2E;border-color:#E3C9C2}
+.btn:active{transform:scale(.98)}
+.btnrow{display:flex;gap:10px;margin-top:14px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{
+  font-family:var(--mono);font-size:11px;letter-spacing:.5px;padding:7px 13px;border-radius:99px;
+  border:1px solid var(--line);background:var(--paper);color:var(--ink2);cursor:pointer;
+}
+.chip.on{background:var(--tint);border-color:var(--mid);color:var(--aink);font-weight:600}
+.seg{display:flex;background:var(--linen);border:1px solid var(--line);border-radius:13px;padding:3px;gap:3px}
+.seg button{
+  flex:1;border:none;background:transparent;font-family:var(--sans);font-weight:700;font-size:13px;
+  color:var(--ink2);padding:9px 6px;border-radius:10px;cursor:pointer;
+}
+.seg button.on{background:var(--paper);color:var(--ink);box-shadow:0 1px 3px rgba(43,38,34,.08)}
+
+/* ---------- forms ---------- */
+.fld{margin-bottom:13px}
+.fld label{display:block;font-family:var(--mono);font-size:10px;letter-spacing:1.4px;text-transform:uppercase;color:var(--ink2);margin-bottom:6px}
+.fld input,.fld textarea,.fld select{
+  width:100%;padding:11px 13px;border-radius:12px;border:1px solid var(--line);background:var(--linen);
+  color:var(--ink);font-family:var(--sans);font-size:15px;outline:none;
+}
+.fld input:focus,.fld textarea:focus,.fld select:focus{border-color:var(--mid)}
+.fld textarea{min-height:84px;resize:vertical}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+/* ---------- bottom nav ---------- */
+#nav{
+  position:fixed;bottom:0;left:0;right:0;z-index:40;
+  background:rgba(250,247,241,.92);backdrop-filter:blur(12px);border-top:1px solid var(--line);
+}
+#nav .in{max-width:560px;margin:0 auto;display:flex;height:calc(var(--nav-h) + env(safe-area-inset-bottom));padding-bottom:env(safe-area-inset-bottom)}
+#nav button{
+  flex:1;border:none;background:transparent;cursor:pointer;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:3px;color:var(--ink2);font-family:var(--mono);
+  font-size:9px;letter-spacing:.8px;text-transform:uppercase;
+}
+#nav button svg{width:21px;height:21px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+#nav button.on{color:var(--deep)}
+#nav button.on::after{content:'';width:4px;height:4px;border-radius:99px;background:var(--deep);margin-top:1px}
+
+/* ---------- FAB ---------- */
+#fab{
+  position:fixed;right:max(18px,calc(50vw - 262px));bottom:calc(var(--nav-h) + env(safe-area-inset-bottom) + 18px);
+  width:54px;height:54px;border-radius:19px;border:none;background:var(--deep);color:var(--paper);
+  font-size:26px;font-weight:300;cursor:pointer;z-index:41;box-shadow:0 6px 18px rgba(43,38,34,.22);
+  display:grid;place-items:center;line-height:1;
+}
+#fab.hide{display:none}
+#fab:active{transform:scale(.94)}
+
+/* ---------- sheet ---------- */
+#veil{position:fixed;inset:0;background:rgba(43,38,34,.38);z-index:50;opacity:0;pointer-events:none;transition:opacity .25s}
+#veil.on{opacity:1;pointer-events:auto}
+#sheet{
+  position:fixed;left:0;right:0;bottom:0;z-index:51;max-width:560px;margin:0 auto;
+  background:var(--paper);border-radius:24px 24px 0 0;border:1px solid var(--line);border-bottom:none;
+  padding:10px 20px calc(20px + env(safe-area-inset-bottom));max-height:86dvh;overflow-y:auto;
+  transform:translateY(105%);
+}
+#sheet .grab{width:40px;height:4px;border-radius:99px;background:var(--line);margin:4px auto 14px}
+#sheet h2{font-family:var(--serif);font-style:italic;font-weight:600;font-size:24px;margin-bottom:16px}
+
+/* ---------- toast ---------- */
+#toast{
+  position:fixed;left:50%;transform:translateX(-50%) translateY(20px);bottom:calc(var(--nav-h) + 84px);
+  background:var(--ink);color:var(--paper);font-family:var(--mono);font-size:12px;letter-spacing:.5px;
+  padding:10px 18px;border-radius:99px;z-index:70;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;
+  max-width:85vw;text-align:center;
+}
+#toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ---------- calendario ---------- */
+.calhead{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.calhead .m{font-family:var(--serif);font-style:italic;font-size:22px;font-weight:600;text-transform:capitalize}
+.calhead button{border:1px solid var(--line);background:var(--paper);border-radius:11px;width:36px;height:36px;font-size:16px;color:var(--ink);cursor:pointer}
+.calgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.caldow{font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--ink2);text-align:center;padding:4px 0}
+.cald{
+  aspect-ratio:1;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  font-size:13px;font-weight:600;cursor:pointer;border:1px solid transparent;gap:2px;
+}
+.cald:not(.off):hover{background:var(--linen)}
+.cald.off{opacity:0;pointer-events:none}
+.cald.today{border-color:var(--mid);color:var(--aink)}
+.cald.sel{background:var(--deep);color:var(--paper)}
+.cald .dts{display:flex;gap:2px;height:4px}
+.cald .dts i{width:4px;height:4px;border-radius:99px;background:var(--mid)}
+.cald.sel .dts i{background:var(--paper)}
+
+/* ---------- notas ---------- */
+.ngrid{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.ncard{border:1px solid var(--line);border-radius:16px;padding:13px 14px;cursor:pointer;min-height:96px;display:flex;flex-direction:column;box-shadow:0 1px 2px rgba(43,38,34,.04)}
+.ncard .nt{font-family:var(--serif);font-style:italic;font-weight:700;font-size:17px;line-height:1.2;margin-bottom:5px}
+.ncard .nb{font-size:12px;color:var(--ink2);flex:1;overflow:hidden;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;white-space:pre-line}
+.ncard .nd{font-family:var(--mono);font-size:9px;color:var(--ink2);margin-top:8px;letter-spacing:.5px}
+
+/* ---------- progreso ---------- */
+.bar{height:7px;border-radius:99px;background:var(--linen);border:1px solid var(--line);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--deep);border-radius:99px;width:0%}
+
+/* ---------- finanzas ---------- */
+.balance{font-family:var(--serif);font-style:italic;font-weight:700;font-size:40px;letter-spacing:.5px}
+.fin2{display:flex;gap:10px;margin-top:12px}
+.fin2 .fbox{flex:1;background:var(--linen);border:1px solid var(--line);border-radius:14px;padding:10px 13px}
+.fin2 .fbox b{font-family:var(--mono);font-size:14px}
+.catbar{display:flex;align-items:center;gap:10px;padding:7px 0}
+.catbar .cn{font-family:var(--mono);font-size:11px;width:88px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.catbar .bar{flex:1}
+.catbar .cv{font-family:var(--mono);font-size:11px;min-width:64px;text-align:right}
+
+/* ---------- costura ---------- */
+.mq{display:block;margin:0 auto}
+.mq .body{fill:var(--tint);stroke:var(--ink);stroke-width:2}
+.mq .stand{stroke:var(--ink);stroke-width:2;fill:none}
+.mq .ml{stroke:var(--deep);stroke-width:1.5;stroke-dasharray:4 4}
+.mq text{font-family:var(--mono);font-size:11px;fill:var(--aink);letter-spacing:.5px}
+.mgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:14px}
+.mfld label{display:block;font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--ink2);margin-bottom:4px}
+.mfld input{width:100%;padding:9px 11px;border-radius:11px;border:1px solid var(--line);background:var(--linen);font-family:var(--mono);font-size:14px;color:var(--ink);outline:none}
+.mfld input:focus{border-color:var(--mid)}
+.heart{position:fixed;z-index:80;font-size:14px;pointer-events:none;color:var(--deep)}
+
+/* ---------- ajustes ---------- */
+.pals{display:flex;gap:10px;flex-wrap:wrap}
+.pal{
+  width:44px;height:44px;border-radius:99px;cursor:pointer;border:2px solid var(--line);
+  display:grid;place-items:center;
+}
+.pal.on{border-color:var(--ink)}
+.pal i{width:26px;height:26px;border-radius:99px;display:block}
+.about{text-align:center;padding:26px 0 8px}
+.about .a1{font-family:var(--serif);font-style:italic;font-weight:700;font-size:20px}
+.about .a2{font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--deep);margin-top:7px}
+
+@media (prefers-reduced-motion: reduce){
+  *{transition:none!important;animation:none!important}
+}
+</style>
+</head>
+<body data-pal="sage">
+
+<div id="app">
+  <header id="top">
+    <div class="brand"><em>T</em>EXMA</div>
+    <div id="topdate"></div>
+  </header>
+  <main id="view"></main>
+</div>
+
+<nav id="nav"><div class="in">
+  <button data-v="hoy"><svg viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5M5.5 9.8V20h13V9.8"/></svg>Hoy</button>
+  <button data-v="cal"><svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M8 3v4M16 3v4M3.5 10h17"/></svg>Agenda</button>
+  <button data-v="tareas"><svg viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="4"/><path d="M8 12.2l2.8 2.8L16.2 9"/></svg>Tareas</button>
+  <button data-v="costura"><svg viewBox="0 0 24 24"><circle cx="6" cy="6.5" r="2.6"/><circle cx="6" cy="17.5" r="2.6"/><path d="M8.3 8.1 20 19.5M8.3 15.9 20 4.5"/></svg>Costura</button>
+  <button data-v="mas"><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="19" cy="12" r="1.7"/></svg>Más</button>
+</div></nav>
+
+<button id="fab" aria-label="Agregar">+</button>
+<div id="veil"></div>
+<div id="sheet"><div class="grab"></div><h2 id="shTitle"></h2><div id="shBody"></div></div>
+<div id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+<script>
+/* ============================================================
+   TEXMA · planner personal · v1
+   Datos: localStorage 'texma' (importa copias de 'jiom')
+============================================================ */
+'use strict';
+
+/* ---------- utilidades ---------- */
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const uid=()=>Math.random().toString(36).slice(2,9)+Date.now().toString(36);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const iso=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+const hoyISO=()=>iso(new Date());
+const MES=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+const DIA=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+const DL=['L','M','X','J','V','S','D']; // lunes primero
+const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const G=()=>(!RM && window.gsap)?window.gsap:null;
+
+function pDate(s){ const [y,m,d]=s.split('-').map(Number); return new Date(y,m-1,d); }
+function fShort(s){ if(!s) return ''; const d=pDate(s); return `${d.getDate()} ${MES[d.getMonth()].slice(0,3)}`; }
+function fLong(s){ const d=pDate(s); return `${DIA[d.getDay()]} ${d.getDate()} de ${MES[d.getMonth()]}`; }
+function fMoney(n){ return '$ '+Number(n||0).toLocaleString('es-AR',{maximumFractionDigits:2}); }
+function weekStart(){ const d=new Date(); d.setDate(d.getDate()-((d.getDay()+6)%7)); return iso(d); }
+
+/* ---------- estado ---------- */
+const KEY='texma';
+const DEF={
+  settings:{pal:'sage',name:'',notif:false},
+  events:[],tasks:[],notes:[],routines:[],workoutLogs:[],
+  meds:[],medLog:{},hobbies:[],hobbyLogs:[],finance:[],sewing:[]
+};
+let S=load();
+function load(){
+  try{
+    const raw=localStorage.getItem(KEY)||localStorage.getItem('jiom');
+    if(raw){
+      const d=JSON.parse(raw);
+      return {...JSON.parse(JSON.stringify(DEF)),...d,settings:{...DEF.settings,...(d.settings||{})}};
+    }
+  }catch(e){}
+  return JSON.parse(JSON.stringify(DEF));
+}
+function save(){ localStorage.setItem(KEY,JSON.stringify(S)); }
+
+/* ---------- toast / animación ---------- */
+let toastT;
+function toast(msg){
+  const t=$('#toast'); t.textContent=msg; t.classList.add('on');
+  clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('on'),1900);
+}
+function popCB(el){ const g=G(); if(g) g.fromTo(el,{scale:.55},{scale:1,duration:.4,ease:'back.out(3.2)'}); }
+function entra(){
+  const g=G(); if(!g) return;
+  g.fromTo('#view .vc',{y:16,opacity:0},{y:0,opacity:1,duration:.42,stagger:.055,ease:'power2.out',clearProps:'all'});
+}
+function hearts(x,y){
+  const g=G();
+  for(let i=0;i<9;i++){
+    const h=document.createElement('div'); h.className='heart'; h.textContent='♥';
+    h.style.left=x+'px'; h.style.top=y+'px'; document.body.appendChild(h);
+    if(g){
+      g.to(h,{x:(Math.random()-.5)*130,y:-40-Math.random()*90,opacity:0,scale:.6+Math.random(),
+        rotation:(Math.random()-.5)*80,duration:.9+Math.random()*.5,ease:'power2.out',onComplete:()=>h.remove()});
+    } else setTimeout(()=>h.remove(),600);
+  }
+}
+
+/* ---------- sheet ---------- */
+const sheetEl=$('#sheet'), veil=$('#veil');
+let sheetOpen=false;
+function sheet(title,html){
+  $('#shTitle').textContent=title; $('#shBody').innerHTML=html;
+  veil.classList.add('on'); sheetOpen=true;
+  const g=G();
+  if(g) g.fromTo(sheetEl,{y:'105%'},{y:'0%',duration:.42,ease:'power3.out',overwrite:'auto'});
+  else sheetEl.style.transform='translateY(0)';
+  return $('#shBody');
+}
+function closeSheet(){
+  if(!sheetOpen) return; sheetOpen=false;
+  veil.classList.remove('on');
+  const g=G();
+  if(g) g.to(sheetEl,{y:'105%',duration:.32,ease:'power2.in',overwrite:'auto'});
+  else sheetEl.style.transform='translateY(105%)';
+}
+veil.addEventListener('click',closeSheet);
+
+/* helpers de formulario */
+function segWire(root,sel){
+  root.querySelectorAll(sel+' button').forEach(b=>b.addEventListener('click',()=>{
+    b.parentElement.querySelectorAll('button').forEach(x=>x.classList.remove('on'));
+    b.classList.add('on');
+  }));
+}
+function segVal(root,sel){ return root.querySelector(sel+' button.on')?.dataset.val; }
+function chipsWire(root,sel,single){
+  root.querySelectorAll(sel+' .chip').forEach(c=>c.addEventListener('click',()=>{
+    if(single){ c.parentElement.querySelectorAll('.chip').forEach(x=>x.classList.remove('on')); c.classList.add('on'); }
+    else c.classList.toggle('on');
+  }));
+}
+function chipsVals(root,sel){ return [...root.querySelectorAll(sel+' .chip.on')].map(c=>c.dataset.val); }
+function dowPick(days){
+  return `<div class="chips dow">`+DL.map((l,i)=>{
+    const jd=(i+1)%7; // L=1 ... D=0
+    return `<div class="chip ${days&&days.includes(jd)?'on':''}" data-val="${jd}">${l}</div>`;
+  }).join('')+`</div>`;
+}
+function delBtn(txt){ return `<button class="btn danger" data-del>${txt||'Eliminar'}</button>`; }
+
+/* ============================================================
+   NAVEGACIÓN
+============================================================ */
+const MAIN=['hoy','cal','tareas','costura'];
+let cur='hoy';
+function navMark(){
+  $$('#nav button').forEach(b=>{
+    const v=b.dataset.v;
+    b.classList.toggle('on', v===cur || (v==='mas' && !MAIN.includes(cur)));
+  });
+}
+function go(v){
+  cur=v; closeSheet(); navMark();
+  VIEWS[v].render();
+  const fab=$('#fab');
+  fab.classList.toggle('hide', !VIEWS[v].fab);
+  window.scrollTo({top:0});
+  entra();
+}
+$$('#nav button').forEach(b=>b.addEventListener('click',()=>{
+  const v=b.dataset.v;
+  if(v==='mas') return masSheet();
+  go(v);
+}));
+$('#fab').addEventListener('click',()=>{ const f=VIEWS[cur].fab; if(f) f(); });
+
+function masSheet(){
+  const items=[
+    ['notas','NO','Notas','Ideas y apuntes'],
+    ['entreno','EN','Entrenamiento','Rutinas y sesiones'],
+    ['meds','ME','Medicamentos','Tomas del día'],
+    ['hobbies','PA','Pasatiempos','Metas semanales'],
+    ['fin','FI','Finanzas','Ingresos y gastos'],
+    ['ajustes','AJ','Ajustes','Paleta, datos y más'],
+  ];
+  const b=sheet('Más', items.map(([v,tag,t,s])=>`
+    <div class="item" data-go="${v}" style="cursor:pointer">
+      <span class="pill" style="width:34px;text-align:center">${tag}</span>
+      <div class="grow"><div class="t">${t}</div><div class="s">${s}</div></div>
+      <span class="muted">›</span>
+    </div>`).join(''));
+  b.querySelectorAll('[data-go]').forEach(r=>r.addEventListener('click',()=>go(r.dataset.go)));
+}
+
+/* ============================================================
+   FORMULARIOS
+============================================================ */
+
+/* ---- evento ---- */
+function eventForm(ev,dateDefault){
+  const e=ev||{type:'cita',title:'',date:dateDefault||hoyISO(),time:'',place:'',notes:''};
+  const b=sheet(ev?'Editar evento':'Nuevo evento',`
+    <div class="fld"><label>Tipo</label>
+      <div class="seg sType">
+        <button data-val="cita" class="${e.type==='cita'?'on':''}">Cita</button>
+        <button data-val="evento" class="${e.type==='evento'?'on':''}">Evento</button>
+        <button data-val="recordatorio" class="${e.type==='recordatorio'?'on':''}">Record.</button>
+      </div></div>
+    <div class="fld"><label>Título</label><input id="fT" value="${esc(e.title)}" placeholder="¿Qué hay que recordar?"></div>
+    <div class="grid2">
+      <div class="fld"><label>Fecha</label><input id="fD" type="date" value="${e.date}"></div>
+      <div class="fld"><label>Hora</label><input id="fH" type="time" value="${e.time||''}"></div>
+    </div>
+    <div class="fld"><label>Lugar</label><input id="fL" value="${esc(e.place||'')}" placeholder="Opcional"></div>
+    <div class="fld"><label>Notas</label><textarea id="fN" placeholder="Opcional">${esc(e.notes||'')}</textarea></div>
+    <div class="btnrow">${ev?delBtn():''}<button class="btn primary" data-ok>Guardar</button></div>`);
+  segWire(b,'.sType');
+  b.querySelector('[data-ok]').addEventListener('click',()=>{
+    const title=b.querySelector('#fT').value.trim();
+    if(!title) return toast('Falta el título');
+    const data={type:segVal(b,'.sType'),title,date:b.querySelector('#fD').value||hoyISO(),
+      time:b.querySelector('#fH').value,place:b.querySelector('#fL').value.trim(),notes:b.querySelector('#fN').value.trim()};
+    if(ev) Object.assign(ev,data); else S.events.push({id:uid(),...data});
+    save(); closeSheet(); go(cur); toast(ev?'Evento actualizado':'Evento agendado ✓');
+  });
+  b.querySelector('[data-del]')?.addEventListener('click',()=>{
+    if(!confirm('¿Eliminar este evento?')) return;
+    S.events=S.events.filter(x=>x.id!==ev.id); save(); closeSheet(); go(cur); toast('Evento eliminado');
+  });
+}
+
+/* ---- tarea ---- */
+function taskForm(tk){
+  const t=tk||{title:'',due:'',prio:'normal'};
+  const b=sheet(tk?'Editar tarea':'Nueva tarea',`
+    <div class="fld"><label>Tarea</label><input id="fT" value="${esc(t.title)}" placeholder="¿Qué hay que hacer?"></div>
+    <div class="grid2">
+      <div class="fld"><label>Fecha límite</label><input id="fD" type="date" value="${t.due||''}"></div>
+      <div class="fld"><label>Prioridad</label>
+        <div class="seg sPrio">
+          <button data-val="normal" class="${t.prio!=='alta'?'on':''}">Normal</button>
+          <button data-val="alta" class="${t.prio==='alta'?'on':''}">Alta</button>
+        </div></div>
+    </div>
+    <div class="btnrow">${tk?delBtn():''}<button class="btn primary" data-ok>Guardar</button></div>`);
+  segWire(b,'.sPrio');
+  b.querySelector('[data-ok]').addEventListener('click',()=>{
+    const title=b.querySelector('#fT').value.trim();
+    if(!title) return toast('Escribí la tarea');
+    const data={title,due:b.querySelector('#fD').value,prio:segVal(b,'.sPrio')};
+    if(tk) Object.assign(tk,data); else S.tasks.push({id:uid(),...data,done:false});
+    save(); closeSheet(); go(cur); toast(tk?'Tarea actualizada':'Tarea anotada ✓');
+  });
+  b.querySelector('[data-del]')?.addEventListener('click',()=>{
+    S.tasks=S.tasks.filter(x=>x.id!==tk.id); save(); closeSheet(); go(cur); toast('Tarea eliminada');
+  });
+}
+
+/* ---- nota ---- */
+const NCOLORS=['#FAF7F1','#F0E7D8','#E7EDE2','#EAE4F0','#F3E3E1','#E3EBEF'];
+function noteForm(nt){
+  const n=nt||{title:'',body:'',color:NCOLORS[0]};
+  const b=sheet(nt?'Editar nota':'Nueva nota',`
+    <div class="fld"><label>Título</label><input id="fT" value="${esc(n.title)}" placeholder="Título"></div>
+    <div class="fld"><label>Nota</label><textarea id="fB" placeholder="Escribí acá…" style="min-height:120px">${esc(n.body)}</textarea></div>
+    <div class="fld"><label>Color</label><div class="chips cCol">${NCOLORS.map(c=>
+      `<div class="chip ${c===n.color?'on':''}" data-val="${c}" style="background:${c};width:34px;height:26px;border-radius:9px"></div>`).join('')}</div></div>
+    <div class="btnrow">${nt?delBtn():''}<button class="btn primary" data-ok>Guardar</button></div>`);
+  chipsWire(b,'.cCol',true);
+  b.querySelector('[data-ok]').addEventListener('click',()=>{
+    const title=b.querySelector('#fT').value.trim(), body=b.querySelector('#fB').value.trim();
+    if(!title&&!body) return toast('La nota está vacía');
+    const data={title:title||'Sin título',body,color:chipsVals(b,'.cCol')[0]||NCOLORS[0],updated:Date.now()};
+    if(nt) Object.assign(nt,data); else S.notes.unshift({id:uid(),...data});
+    save(); closeSheet(); go(cur); toast('Nota guardada ✓');
+  });
+  b.querySelector('[data-del]')?.addEventListener('click',()=>{
+    S.notes=S.notes.filter(x=>x.id!==nt.id); save(); closeSheet(); go(cur); toast('Nota eliminada');
+  });
+}
+
+/* ---- proyecto de costura ---- */
+const MEDIDAS=[
+  ['busto','Busto'],['cintura','Cintura'],['cadera','Cadera'],['espalda','Ancho espalda'],
+  ['hombro','Hombro'],['talle','Largo talle'],['manga','Largo manga'],['brazo','Cont. brazo'],
+  ['cuello','Cont. cuello'],['tiro','Tiro'],['falda','Largo falda'],['total','Largo total'],
+];
+function maniqui(){
+  return `<svg class="mq" viewBox="0 0 230 330" width="190" height="272" aria-hidden="true">
+    <rect class="body" x="103" y="14" width="24" height="24" rx="9"/>
+    <path class="body" d="M115 36
+      C 95 38 79 46 74 60 C 68 76 66 88 66 99
+      C 66 115 76 131 84 147 C 90 160 86 170 76 182
+      C 63 197 59 213 65 226 C 73 241 94 248 115 248
+      C 136 248 157 241 165 226 C 171 213 167 197 154 182
+      C 144 170 140 160 146 147 C 154 131 164 115 164 99
+      C 164 88 162 76 156 60 C 151 46 135 38 115 36 Z"/>
+    <line class="stand" x1="115" y1="248" x2="115" y2="298"/>
+    <path class="stand" d="M82 312 Q115 292 148 312"/>
+    <line class="stand" x1="74" y1="314" x2="156" y2="314"/>
+    <line class="ml" x1="42" y1="99" x2="188" y2="99"/><text x="8" y="103">busto</text>
+    <line class="ml" x1="56" y1="150" x2="176" y2="150"/><text x="182" y="154">cintura</text>
+    <line class="ml" x1="42" y1="210" x2="188" y2="210"/><text x="8" y="214">cadera</text>
+  </svg>`;
+}
+function projForm(pr){
+  const p=pr||{name:'',type:'vestido',client:'',due:'',notes:'',measures:{},done:false};
+  const m=p.measures||{};
+  const b=sheet(pr?'Editar proyecto':'Nuevo proyecto',`
+    <div class="fld"><label>Nombre</label><input id="fT" value="${esc(p.name)}" placeholder="Vestido de Sofía, dobladillo…"></div>
+    <div class="fld"><label>Tipo</label>
+      <div class="seg sTipo">
+        <button data-val="vestido" class="${p.type==='vestido'?'on':''}">Vestido</button>
+        <button data-val="prenda" class="${p.type==='prenda'?'on':''}">Prenda</button>
+        <button data-val="arreglo" class="${p.type==='arreglo'?'on':''}">Arreglo</button>
+        <button data-val="otro" class="${p.type==='otro'?'on':''}">Otro</button>
+      </div></div>
+    <div class="grid2">
+      <div class="fld"><label>Cliente / para</label><input id="fC" value="${esc(p.client||'')}" placeholder="Opcional"></div>
+      <div class="fld"><label>Entrega</label><input id="fD" type="date" value="${p.due||''}"></div>
+    </div>
+    <div class="lbl" style="margin-top:6px">Medidas · cm</div>
+    ${maniqui()}
+    <div class="mgrid">${MEDIDAS.map(([k,l])=>`
+      <div class="mfld"><label>${l}</label>
+      <input data-m="${k}" type="number" inputmode="decimal" step="0.5" min="0" placeholder="—" value="${m[k]??''}"></div>`).join('')}
+    </div>
+    <div class="fld" style="margin-top:14px"><label>Notas</label><textarea id="fN" placeholder="Tela, hilo, detalles…">${esc(p.notes||'')}</textarea></div>
+    <div class="btnrow">${pr?delBtn():''}<button class="btn primary" data-ok>Guardar</button></div>`);
+  segWire(b,'.sTipo');
+  b.querySelector('[data-ok]').addEventListener('click',()=>{
+    const name=b.querySelector('#fT').value.trim();
+    if(!name) return toast('Poné un nombre al proyecto');
+    const measures={};
+    b.querySelectorAll('[data-m]').forEach(i=>{ if(i.value!=='') measures[i.dataset.m]=i.value; });
+    const data={name,type:segVal(b,'.sTipo'),client:b.querySelector('#fC').value.trim(),
+      due:b.querySelector('#fD').value,notes:b.querySelector('#fN').value.trim(),measures,updated:Date.now()};
+    if(pr) Object.assign(pr,data);
+    else S.sewing.unshift({id:uid(),...data,done:false,created:Date.now()});
+    save(); closeSheet(); go(cur); toast(pr?'Proyecto actualizado':'Proyecto creado ✂');
+  });
+  b.querySelector('[data-del]')?.addEventListener('click',()=>{
+    if(!confirm('¿Eliminar este proyecto y sus medidas?')) return;
+    S.sewing=S.sewing.filter(x=>x.id!==pr.id); save(); closeSheet(); go(cur); toast('Proyecto eliminado');
+  });
+}
+
+/* ---- rutina ---- */
+function routineForm(rt){
+  const r=rt||{name:'',days:[],exercises:[]};
+  const exTxt=r.exercises.map(e=>`${e.name} ${e.sets}x${e.reps}`).join('\n');
+  const b=sheet(rt?'Editar rutina':'Nueva rutina',`
+    <div class="fld"><label>Nombre</label><input id="fT" value="${esc(r.name)}" placeholder="Piernas, full body…"></div>
+    <div class="fld"><label>Días</label>${dowPick(r.days)}</div>
+    <div class="fld"><label>Ejercicios · uno por línea · "Sentadillas 3x12"</label>
+      <textarea id="fE" style="min-height:120px" placeholder="Sentadillas 3x12&#10;Plancha 3x40">${esc(exTxt)}</textarea></div>
+    <div class="btnrow">${rt?delBtn():''}<button class="btn primary" data-ok>Guardar</button></div>`);
+  chipsWire(b,'.dow');
+  b.querySelector('[data-ok]').addEventListener('click',()=>{
+    const name=b.querySelector('#fT').value.trim();
+    if(!name) return toast('Poné un nombre');
+    const exercises=b.querySelector('#fE').value.split('\n').map(l=>l.trim()).filter(Boolean).map(l=>{
+      const mm=l.match(/^(.*?)\s+(\d+)\s*[xX×]\s*(\d+)\s*$/);
+      return mm?{name:mm[1],sets:+mm[2],reps:+mm[3]}:{name:l,sets:'',reps:''};
+    });
+    const data={name,days:chipsVals(b,'.dow').map(Number),exercises};
+    if(rt) Object.assign(rt,data); else S.routines.push({id:uid(),...data});
+    save(); closeSheet(); go(cur); toast('Rutina guardada ✓');
+  });
+  b.querySelector('[data-del]')?.addEventListener('click',()=>{
+    S.routines=S.routines.filter(x=>x.id!==rt.id); save(); closeSheet(); go(cur); toast('Rutina eliminada');
+  });
+}
+
+/* ---- medicamento ---- */
+function medForm(md){
+  const m=md||{name:'',dose:'',times:[],days:[],notes:''};
+  const b=sheet(md?'Editar medicamento':'Nuevo medicamento',`
+    <div class="grid2">
+      <div class="fld"><label>Nombre</label><input id="fT" value="${esc(m.name)}" placeholder="Ibuprofeno"></div>
+      <div class="fld"><label>Dosis</label><input id="fDo" value="${esc(m.dose||'')}" placeholder="400 mg"></div>
+    </div>
+    <div class="fld"><label>Horarios · separados por coma</label><input id="fH" value="${esc((m.times||[]).join(', '))}" placeholder="08:00, 20:00"></div>
+    <div class="fld"><label>Días · vacío = todos</label>${dowPick(m.days)}</div>
+    <div class="fld"><label>Notas</label><input id="fN" value="${esc(m.notes||'')}" placeholder="Con comida, etc."></div>
+    <div class="btnrow">${md?delBtn():''}<button class="btn primary" data-ok>Guardar</button></div>`);
+  chipsWire(b,'.dow');
+  b.querySelector('[data-ok]').addEventListener('click',()=>{
+    const name=b.querySelector('#fT').value.trim();
+    if(!name) return toast('Falta el nombre');
+    const times=b.querySelector('#fH').value.split(',').map(t=>t.trim()).filter(t=>/^\d{1,2}:\d{2}$/.test(t))
+      .map(t=>t.padStart(5,'0'));
+    if(!times.length) return toast('Poné al menos un horario (ej. 08:00)');
+    const data={name,dose:b.querySelector('#fDo').value.trim(),times,
+      days:chipsVals(b,'.dow').map(Number),notes:b.querySelector('#fN').value.trim()};
+    if(md) Object.assign(md,data); else S.meds.push({id:uid(),...data});
+    save(); closeSheet(); go(cur); toast('Medicamento guardado ✓');
+  });
+  b.querySelector('[data-del]')?.addEventListener('click',()=>{
+    S.meds=S.meds.filter(x=>x.id!==md.id); save(); closeSheet(); go(cur); toast('Medicamento eliminado');
+  });
+}
+
+/* ---- pasatiempos ---- */
+function hobbyForm(hb){
+  const h=hb||{name:'',goal:120};
+  const b=sheet(hb?'Editar pasatiempo':'Nuevo pasatiempo',`
+    <div class="fld"><label>Pasatiempo</label><input id="fT" value="${esc(h.name)}" placeholder="Lectura, bordado…"></div>
+    <div class="fld"><label>Meta semanal · minutos</label><input id="fG" type="number" inputmode="numeric" min="5" value="${h.goal}"></div>
+    <div class="btnrow">${hb?delBtn():''}<button class="btn primary" data-ok>Guardar</button></div>`);
+  b.querySelector('[data-ok]').addEventListener('click',()=>{
+    const name=b.querySelector('#fT').value.trim();
+    if(!name) return toast('Falta el nombre');
+    const data={name,goal:Math.max(5,+b.querySelector('#fG').value||60)};
+    if(hb) Object.assign(hb,data); else S.hobbies.push({id:uid(),...data});
+    save(); closeSheet(); go(cur); toast('Pasatiempo guardado ✓');
+  });
+  b.querySelector('[data-del]')?.addEventListener('click',()=>{
+    S.hobbies=S.hobbies.filter(x=>x.id!==hb.id);
+    S.hobbyLogs=S.hobbyLogs.filter(l=>l.hobbyId!==hb.id);
+    save(); closeSheet(); go(cur); toast('Pasatiempo eliminado');
+  });
+}
+function hobbyLogForm(){
+  if(!S.hobbies.length) return hobbyForm();
+  const b=sheet('Registrar tiempo',`
+    <div class="fld"><label>Pasatiempo</label><select id="fH">${S.hobbies.map(h=>`<option value="${h.id}">${esc(h.name)}</option>`).join('')}</select></div>
+    <div class="grid2">
+      <div class="fld"><label>Minutos</label><input id="fM" type="number" inputmode="numeric" min="1" value="30"></div>
+      <div class="fld"><label>Fecha</label><input id="fD" type="date" value="${hoyISO()}"></div>
+    </div>
+    <div class="fld"><label>Nota</label><input id="fN" placeholder="Opcional"></div>
+    <div class="btnrow"><button class="btn primary" data-ok>Guardar</button></div>`);
+  b.querySelector('[data-ok]').addEventListener('click',()=>{
+    const minutes=+b.querySelector('#fM').value;
+    if(!minutes||minutes<1) return toast('¿Cuántos minutos?');
+    S.hobbyLogs.push({id:uid(),hobbyId:b.querySelector('#fH').value,date:b.querySelector('#fD').value||hoyISO(),
+      minutes,note:b.querySelector('#fN').value.trim()});
+    save(); closeSheet(); go(cur); toast('Tiempo registrado ✓');
+  });
+}
+
+/* ---- finanzas ---- */
+const CATS={in:['Sueldo','Costura','Ventas','Otro'],out:['Comida','Casa','Transporte','Telas','Salud','Ocio','Otro']};
+function finForm(fx){
+  const f=fx||{type:'out',amount:'',cat:'',date:hoyISO(),desc:''};
+  const catChips=t=>CATS[t].map(c=>`<div class="chip ${f.cat===c?'on':''}" data-val="${c}">${c}</div>`).join('');
+  const b=sheet(fx?'Editar movimiento':'Nuevo movimiento',`
+    <div class="fld"><div class="seg sTy">
+      <button data-val="out" class="${f.type==='out'?'on':''}">Gasto</button>
+      <button data-val="in" class="${f.type==='in'?'on':''}">Ingreso</button>
+    </div></div>
+    <div class="grid2">
+      <div class="fld"><label>Monto</label><input id="fA" type="number" inputmode="decimal" step="0.01" min="0" value="${f.amount}" placeholder="0"></div>
+      <div class="fld"><label>Fecha</label><input id="fD" type="date" value="${f.date}"></div>
+    </div>
+    <div class="fld"><label>Categoría</label><div class="chips cCat">${catChips(f.type)}</div></div>
+    <div class="fld"><label>Detalle</label><input id="fDe" value="${esc(f.desc||'')}" placeholder="Opcional"></div>
+    <div class="btnrow">${fx?delBtn():''}<button class="btn primary" data-ok>Guardar</button></div>`);
+  segWire(b,'.sTy'); chipsWire(b,'.cCat',true);
+  b.querySelectorAll('.sTy button').forEach(bt=>bt.addEventListener('click',()=>{
+    b.querySelector('.cCat').innerHTML=CATS[bt.dataset.val].map(c=>`<div class="chip" data-val="${c}">${c}</div>`).join('');
+    chipsWire(b,'.cCat',true);
+  }));
+  b.querySelector('[data-ok]').addEventListener('click',()=>{
+    const amount=+b.querySelector('#fA').value;
+    if(!amount||amount<=0) return toast('Falta el monto');
+    const data={type:segVal(b,'.sTy'),amount,cat:chipsVals(b,'.cCat')[0]||'Otro',
+      date:b.querySelector('#fD').value||hoyISO(),desc:b.querySelector('#fDe').value.trim()};
+    if(fx) Object.assign(fx,data); else S.finance.push({id:uid(),...data});
+    save(); closeSheet(); go(cur); toast('Movimiento guardado ✓');
+  });
+  b.querySelector('[data-del]')?.addEventListener('click',()=>{
+    S.finance=S.finance.filter(x=>x.id!==fx.id); save(); closeSheet(); go(cur); toast('Movimiento eliminado');
+  });
+}
+
+/* ============================================================
+   RENDER DE ITEMS COMPARTIDOS
+============================================================ */
+const CHECK='<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+
+function taskRow(t){
+  const late=t.due&&!t.done&&t.due<hoyISO();
+  return `<div class="item ${t.done?'done':''}" data-task="${t.id}">
+    <div class="cb ${t.done?'on':''}" data-cbt="${t.id}">${CHECK}</div>
+    <div class="grow" data-edit-task="${t.id}" style="cursor:pointer">
+      <div class="t">${esc(t.title)}</div>
+      ${t.due?`<div class="s" style="${late?'color:#9C3B2E':''}">${late?'venció · ':''}${fShort(t.due)}</div>`:''}
+    </div>
+    ${t.prio==='alta'&&!t.done?'<span class="pill warn">alta</span>':''}
+  </div>`;
+}
+function wireTasks(root){
+  root.querySelectorAll('[data-cbt]').forEach(cb=>cb.addEventListener('click',()=>{
+    const t=S.tasks.find(x=>x.id===cb.dataset.cbt); if(!t) return;
+    t.done=!t.done; save();
+    cb.classList.toggle('on',t.done); popCB(cb);
+    if(t.done) toast('¡Lista! ✓');
+    setTimeout(()=>go(cur),350);
+  }));
+  root.querySelectorAll('[data-edit-task]').forEach(r=>r.addEventListener('click',()=>{
+    const t=S.tasks.find(x=>x.id===r.dataset.editTask); if(t) taskForm(t);
+  }));
+}
+function eventRow(e,withDate){
+  const tag={cita:'cita',evento:'evento',recordatorio:'record.'}[e.type]||e.type;
+  return `<div class="item" data-ev="${e.id}" style="cursor:pointer">
+    <div class="grow">
+      <div class="t">${esc(e.title)}</div>
+      <div class="s">${withDate?fShort(e.date)+' · ':''}${e.time||'todo el día'}${e.place?' · '+esc(e.place):''}</div>
+    </div><span class="pill">${tag}</span>
+  </div>`;
+}
+function wireEvents(root){
+  root.querySelectorAll('[data-ev]').forEach(r=>r.addEventListener('click',()=>{
+    const e=S.events.find(x=>x.id===r.dataset.ev); if(e) eventForm(e);
+  }));
+}
+function medsToday(){
+  const d=new Date(), dow=d.getDay(), today=hoyISO();
+  const log=S.medLog[today]||{};
+  const rows=[];
+  S.meds.forEach(m=>{
+    if(m.days&&m.days.length&&!m.days.includes(dow)) return;
+    (m.times||[]).forEach(t=>rows.push({m,t,on:!!log[m.id+'_'+t]}));
+  });
+  rows.sort((a,b)=>a.t.localeCompare(b.t));
+  return rows;
+}
+function medRows(rows){
+  return rows.map(({m,t,on})=>`<div class="item ${on?'done':''}">
+    <div class="cb ${on?'on':''}" data-med="${m.id}_${t}">${CHECK}</div>
+    <div class="grow" data-edit-med="${m.id}" style="cursor:pointer">
+      <div class="t">${esc(m.name)}${m.dose?` <span class="muted small">· ${esc(m.dose)}</span>`:''}</div>
+      ${m.notes?`<div class="s">${esc(m.notes)}</div>`:''}
+    </div><span class="pill">${t}</span>
+  </div>`).join('');
+}
+function wireMeds(root){
+  root.querySelectorAll('[data-med]').forEach(cb=>cb.addEventListener('click',()=>{
+    const today=hoyISO(); S.medLog[today]=S.medLog[today]||{};
+    const k=cb.dataset.med;
+    S.medLog[today][k]=!S.medLog[today][k]; save();
+    cb.classList.toggle('on'); popCB(cb);
+    cb.closest('.item').classList.toggle('done');
+  }));
+  root.querySelectorAll('[data-edit-med]').forEach(r=>r.addEventListener('click',()=>{
+    const m=S.meds.find(x=>x.id===r.dataset.editMed); if(m) medForm(m);
+  }));
+}
+
+/* ============================================================
+   VISTAS
+============================================================ */
+const V=$('#view');
+const VIEWS={};
+
+/* ---------- HOY ---------- */
+VIEWS.hoy={
+  fab(){ // agregado rápido
+    const b=sheet('Agregar',`
+      <div class="chips" style="flex-direction:column;align-items:stretch;gap:9px">
+        <button class="btn" data-q="tarea">＋ Tarea</button>
+        <button class="btn" data-q="evento">＋ Cita o evento</button>
+        <button class="btn" data-q="nota">＋ Nota</button>
+        <button class="btn" data-q="proy">＋ Proyecto de costura</button>
+      </div>`);
+    b.querySelector('[data-q="tarea"]').addEventListener('click',()=>taskForm());
+    b.querySelector('[data-q="evento"]').addEventListener('click',()=>eventForm());
+    b.querySelector('[data-q="nota"]').addEventListener('click',()=>noteForm());
+    b.querySelector('[data-q="proy"]').addEventListener('click',()=>projForm());
+  },
+  render(){
+    const d=new Date(), h=d.getHours();
+    const sal=h<12?'Buen día':h<19?'Buenas tardes':'Buenas noches';
+    const nom=S.settings.name?`, ${esc(S.settings.name)}`:'';
+    const today=hoyISO();
+    const evs=S.events.filter(e=>e.date===today).sort((a,b)=>(a.time||'99').localeCompare(b.time||'99'));
+    const tks=S.tasks.filter(t=>!t.done)
+      .sort((a,b)=>((a.due||'9999')+(a.prio==='alta'?'0':'1')).localeCompare((b.due||'9999')+(b.prio==='alta'?'0':'1')))
+      .slice(0,5);
+    const meds=medsToday();
+    const proy=S.sewing.filter(p=>!p.done);
+    const prox=proy.filter(p=>p.due).sort((a,b)=>a.due.localeCompare(b.due))[0];
+    V.innerHTML=`
+      <div class="vc">
+        <h1 class="vt">${sal}${nom} ♥</h1>
+        <div class="lbl">${fLong(today)}</div>
+      </div>
+      <div class="card vc"><div class="lbl">Agenda de hoy</div>
+        ${evs.length?evs.map(e=>eventRow(e)).join(''):'<div class="empty">Nada agendado — día tranquilo</div>'}
+      </div>
+      <div class="card vc"><div class="lbl">Tareas pendientes</div>
+        ${tks.length?tks.map(taskRow).join(''):'<div class="empty">Todo al día ✓</div>'}
+      </div>
+      ${S.meds.length?`<div class="card vc"><div class="lbl">Medicamentos de hoy</div>
+        ${meds.length?medRows(meds):'<div class="empty">No hay tomas hoy</div>'}</div>`:''}
+      <div class="card vc"><div class="lbl">Costura</div>
+        ${proy.length?`
+          <div class="item" data-go-cost style="cursor:pointer">
+            <div class="grow"><div class="t">${proy.length} proyecto${proy.length>1?'s':''} en curso</div>
+            ${prox?`<div class="s">próxima entrega · ${esc(prox.name)} · ${fShort(prox.due)}</div>`:''}</div>
+            <span class="muted">›</span>
+          </div>`:'<div class="empty">Sin proyectos en curso ✂</div>'}
+      </div>`;
+    wireEvents(V); wireTasks(V); wireMeds(V);
+    V.querySelector('[data-go-cost]')?.addEventListener('click',()=>go('costura'));
+  }
+};
+
+/* ---------- CALENDARIO ---------- */
+let calY=new Date().getFullYear(), calM=new Date().getMonth(), calSel=hoyISO();
+VIEWS.cal={
+  fab(){ eventForm(null,calSel); },
+  render(){
+    const first=new Date(calY,calM,1);
+    const off=(first.getDay()+6)%7;
+    const nDays=new Date(calY,calM+1,0).getDate();
+    const byDate={};
+    S.events.forEach(e=>{ (byDate[e.date]=byDate[e.date]||[]).push(e); });
+    let cells='';
+    for(let i=0;i<off;i++) cells+='<div class="cald off"></div>';
+    for(let d=1;d<=nDays;d++){
+      const ds=`${calY}-${String(calM+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      const n=(byDate[ds]||[]).length;
+      cells+=`<div class="cald ${ds===hoyISO()?'today':''} ${ds===calSel?'sel':''}" data-day="${ds}">
+        ${d}<div class="dts">${'<i></i>'.repeat(Math.min(n,3))}</div></div>`;
+    }
+    const selEvs=(byDate[calSel]||[]).sort((a,b)=>(a.time||'99').localeCompare(b.time||'99'));
+    const today=hoyISO();
+    const prox=S.events.filter(e=>e.date>=today).sort((a,b)=>(a.date+(a.time||'')).localeCompare(b.date+(b.time||''))).slice(0,8);
+    V.innerHTML=`
+      <h1 class="vt vc">Agenda</h1>
+      <div class="card vc">
+        <div class="calhead">
+          <button data-nav="-1">‹</button>
+          <div class="m">${MES[calM]} ${calY}</div>
+          <button data-nav="1">›</button>
+        </div>
+        <div class="calgrid">${DL.map(l=>`<div class="caldow">${l}</div>`).join('')}${cells}</div>
+      </div>
+      <div class="card vc"><div class="lbl">${fLong(calSel)}</div>
+        ${selEvs.length?selEvs.map(e=>eventRow(e)).join(''):'<div class="empty">Sin eventos este día</div>'}
+      </div>
+      <div class="card vc"><div class="lbl">Próximos</div>
+        ${prox.length?prox.map(e=>eventRow(e,true)).join(''):'<div class="empty">Nada agendado por venir</div>'}
+      </div>`;
+    V.querySelectorAll('[data-nav]').forEach(b=>b.addEventListener('click',()=>{
+      calM+=+b.dataset.nav;
+      if(calM<0){calM=11;calY--;} if(calM>11){calM=0;calY++;}
+      VIEWS.cal.render(); entra();
+    }));
+    V.querySelectorAll('[data-day]').forEach(c=>c.addEventListener('click',()=>{
+      calSel=c.dataset.day; VIEWS.cal.render();
+    }));
+    wireEvents(V);
+  }
+};
+
+/* ---------- TAREAS ---------- */
+VIEWS.tareas={
+  fab(){ taskForm(); },
+  render(){
+    const pend=S.tasks.filter(t=>!t.done)
+      .sort((a,b)=>((a.prio==='alta'?'0':'1')+(a.due||'9999')).localeCompare((b.prio==='alta'?'0':'1')+(b.due||'9999')));
+    const done=S.tasks.filter(t=>t.done);
+    V.innerHTML=`
+      <h1 class="vt vc">Tareas</h1>
+      <div class="card vc"><div class="lbl">Pendientes · ${pend.length}</div>
+        ${pend.length?pend.map(taskRow).join(''):'<div class="empty">Nada pendiente ✓</div>'}
+      </div>
+      ${done.length?`<div class="card vc"><div class="lbl">Hechas · ${done.length}</div>
+        ${done.map(taskRow).join('')}
+        <div class="btnrow"><button class="btn ghost" data-clear>Limpiar hechas</button></div></div>`:''}`;
+    wireTasks(V);
+    V.querySelector('[data-clear]')?.addEventListener('click',()=>{
+      S.tasks=S.tasks.filter(t=>!t.done); save(); go(cur); toast('Tareas hechas eliminadas');
+    });
+  }
+};
+
+/* ---------- COSTURA ---------- */
+VIEWS.costura={
+  fab(){ projForm(); },
+  render(){
+    const pend=S.sewing.filter(p=>!p.done).sort((a,b)=>(a.due||'9999').localeCompare(b.due||'9999'));
+    const done=S.sewing.filter(p=>p.done);
+    const TIPO={vestido:'vestido',prenda:'prenda',arreglo:'arreglo',otro:'otro'};
+    const row=p=>{
+      const nM=Object.keys(p.measures||{}).length;
+      const late=p.due&&!p.done&&p.due<hoyISO();
+      return `<div class="item ${p.done?'done':''}">
+        <div class="cb ${p.done?'on':''}" data-cbp="${p.id}">${CHECK}</div>
+        <div class="grow" data-edit-p="${p.id}" style="cursor:pointer">
+          <div class="t">${esc(p.name)}</div>
+          <div class="s" style="${late?'color:#9C3B2E':''}">
+            ${p.client?esc(p.client)+' · ':''}${nM?nM+' medidas':'sin medidas'}${p.due?' · '+(late?'venció ':'entrega ')+fShort(p.due):''}
+          </div>
+        </div>
+        <span class="pill">${TIPO[p.type]||p.type}</span>
+      </div>`;
+    };
+    V.innerHTML=`
+      <h1 class="vt vc">Costura</h1>
+      <div class="card vc"><div class="lbl">En curso · ${pend.length}</div>
+        ${pend.length?pend.map(row).join(''):`<div class="empty">Sin proyectos — tocá + para empezar uno ✂</div>`}
+      </div>
+      ${done.length?`<div class="card vc"><div class="lbl">Terminados · ${done.length}</div>${done.map(row).join('')}</div>`:''}
+      <div class="card vc" style="text-align:center;padding:20px">
+        ${maniqui()}
+        <div class="lbl" style="margin-top:8px;text-align:center">Cada proyecto guarda sus medidas · en cm</div>
+      </div>`;
+    V.querySelectorAll('[data-cbp]').forEach(cb=>cb.addEventListener('click',ev=>{
+      const p=S.sewing.find(x=>x.id===cb.dataset.cbp); if(!p) return;
+      p.done=!p.done; save();
+      cb.classList.toggle('on',p.done); popCB(cb);
+      if(p.done){
+        const r=cb.getBoundingClientRect();
+        hearts(r.left+r.width/2,r.top);
+        toast('¡Proyecto terminado! ✂ ♥');
+      }
+      setTimeout(()=>go(cur),650);
+    }));
+    V.querySelectorAll('[data-edit-p]').forEach(r=>r.addEventListener('click',()=>{
+      const p=S.sewing.find(x=>x.id===r.dataset.editP); if(p) projForm(p);
+    }));
+  }
+};
+
+/* ---------- NOTAS ---------- */
+let noteQ='';
+VIEWS.notas={
+  fab(){ noteForm(); },
+  render(){
+    const q=noteQ.toLowerCase();
+    const list=S.notes.filter(n=>!q||n.title.toLowerCase().includes(q)||n.body.toLowerCase().includes(q));
+    V.innerHTML=`
+      <h1 class="vt vc">Notas</h1>
+      <div class="fld vc"><input id="nq" placeholder="Buscar en notas…" value="${esc(noteQ)}" style="background:var(--paper)"></div>
+      <div class="ngrid vc">
+        ${list.map(n=>`<div class="ncard" data-note="${n.id}" style="background:${n.color||NCOLORS[0]}">
+          <div class="nt">${esc(n.title)}</div>
+          <div class="nb">${esc(n.body)}</div>
+          <div class="nd">${new Date(n.updated||Date.now()).toLocaleDateString('es-AR',{day:'numeric',month:'short'})}</div>
+        </div>`).join('')}
+      </div>
+      ${list.length?'':'<div class="empty vc">'+(q?'Nada con esa búsqueda':'Todavía no hay notas — tocá + para la primera')+'</div>'}`;
+    const nq=V.querySelector('#nq');
+    nq.addEventListener('input',()=>{ noteQ=nq.value; VIEWS.notas.render(); V.querySelector('#nq').focus(); const i=V.querySelector('#nq'); i.setSelectionRange(i.value.length,i.value.length); });
+    V.querySelectorAll('[data-note]').forEach(c=>c.addEventListener('click',()=>{
+      const n=S.notes.find(x=>x.id===c.dataset.note); if(n) noteForm(n);
+    }));
+  }
+};
+
+/* ---------- ENTRENAMIENTO ---------- */
+VIEWS.entreno={
+  fab(){ routineForm(); },
+  render(){
+    const dow=new Date().getDay(), today=hoyISO();
+    const hoyR=S.routines.filter(r=>r.days.includes(dow));
+    const rutHoy=hoyR.map(r=>{
+      let log=S.workoutLogs.find(l=>l.date===today&&l.routineId===r.id);
+      const done=log?log.done:[];
+      const pct=r.exercises.length?Math.round(done.length/r.exercises.length*100):0;
+      return `<div style="margin-bottom:14px">
+        <div class="item" style="border-bottom:none;padding-bottom:4px">
+          <div class="grow"><div class="t">${esc(r.name)}</div></div>
+          <span class="pill">${pct}%</span>
+        </div>
+        <div class="bar" style="margin:0 2px 6px"><i style="width:${pct}%"></i></div>
+        ${r.exercises.map((e,i)=>`<div class="item ${done.includes(i)?'done':''}">
+          <div class="cb ${done.includes(i)?'on':''}" data-wk="${r.id}_${i}">${CHECK}</div>
+          <div class="grow"><div class="t" style="font-weight:600">${esc(e.name)}</div></div>
+          ${e.sets?`<span class="s mono">${e.sets}×${e.reps}</span>`:''}
+        </div>`).join('')}
+      </div>`;
+    }).join('');
+    V.innerHTML=`
+      <h1 class="vt vc">Entrenamiento</h1>
+      <div class="card vc"><div class="lbl">Hoy · ${DIA[dow]}</div>
+        ${hoyR.length?rutHoy:'<div class="empty">Hoy toca descanso</div>'}
+      </div>
+      <div class="card vc"><div class="lbl">Rutinas</div>
+        ${S.routines.length?S.routines.map(r=>`<div class="item" data-rt="${r.id}" style="cursor:pointer">
+          <div class="grow"><div class="t">${esc(r.name)}</div>
+          <div class="s">${r.exercises.length} ejercicios · ${r.days.length?r.days.map(d=>DL[(d+6)%7]).join(' '):'sin días'}</div></div>
+          <span class="muted">›</span></div>`).join(''):'<div class="empty">Creá tu primera rutina con +</div>'}
+      </div>`;
+    V.querySelectorAll('[data-wk]').forEach(cb=>cb.addEventListener('click',()=>{
+      const [rid,idx]=cb.dataset.wk.split('_'); const i=+idx;
+      let log=S.workoutLogs.find(l=>l.date===today&&l.routineId===rid);
+      if(!log){ log={id:uid(),date:today,routineId:rid,done:[]}; S.workoutLogs.push(log); }
+      const k=log.done.indexOf(i);
+      if(k>=0) log.done.splice(k,1); else log.done.push(i);
+      save(); popCB(cb);
+      setTimeout(()=>{VIEWS.entreno.render();},300);
+    }));
+    V.querySelectorAll('[data-rt]').forEach(r=>r.addEventListener('click',()=>{
+      const rt=S.routines.find(x=>x.id===r.dataset.rt); if(rt) routineForm(rt);
+    }));
+  }
+};
+
+/* ---------- MEDICAMENTOS ---------- */
+VIEWS.meds={
+  fab(){ medForm(); },
+  render(){
+    const rows=medsToday();
+    V.innerHTML=`
+      <h1 class="vt vc">Medicamentos</h1>
+      <div class="card vc"><div class="lbl">Tomas de hoy</div>
+        ${rows.length?medRows(rows):'<div class="empty">Hoy no hay tomas programadas</div>'}
+      </div>
+      <div class="card vc"><div class="lbl">Todos</div>
+        ${S.meds.length?S.meds.map(m=>`<div class="item" data-edit-med="${m.id}" style="cursor:pointer">
+          <div class="grow"><div class="t">${esc(m.name)}${m.dose?` <span class="muted small">· ${esc(m.dose)}</span>`:''}</div>
+          <div class="s">${(m.times||[]).join(' · ')} · ${m.days&&m.days.length?m.days.map(d=>DL[(d+6)%7]).join(' '):'todos los días'}</div></div>
+          <span class="muted">›</span></div>`).join(''):'<div class="empty">Agregá el primero con +</div>'}
+      </div>`;
+    wireMeds(V);
+  }
+};
+
+/* ---------- PASATIEMPOS ---------- */
+VIEWS.hobbies={
+  fab(){
+    const b=sheet('Pasatiempos',`
+      <div class="chips" style="flex-direction:column;align-items:stretch;gap:9px">
+        <button class="btn primary" data-q="log">⏱ Registrar tiempo</button>
+        <button class="btn" data-q="new">＋ Nuevo pasatiempo</button>
+      </div>`);
+    b.querySelector('[data-q="log"]').addEventListener('click',()=>hobbyLogForm());
+    b.querySelector('[data-q="new"]').addEventListener('click',()=>hobbyForm());
+  },
+  render(){
+    const ws=weekStart();
+    V.innerHTML=`
+      <h1 class="vt vc">Pasatiempos</h1>
+      ${S.hobbies.length?S.hobbies.map(h=>{
+        const min=S.hobbyLogs.filter(l=>l.hobbyId===h.id&&l.date>=ws).reduce((a,l)=>a+l.minutes,0);
+        const pct=Math.min(100,Math.round(min/h.goal*100));
+        return `<div class="card vc" data-hb="${h.id}" style="cursor:pointer">
+          <div class="item" style="border-bottom:none;padding:0 0 8px">
+            <div class="grow"><div class="t">${esc(h.name)}</div>
+            <div class="s">${min} de ${h.goal} min esta semana</div></div>
+            <span class="pill">${pct}%</span>
+          </div>
+          <div class="bar"><i data-w="${pct}"></i></div>
+        </div>`;
+      }).join(''):'<div class="empty vc">Agregá un pasatiempo con + y registrá tus ratos ♥</div>'}
+      ${S.hobbyLogs.length?`<div class="card vc"><div class="lbl">Últimos registros</div>
+        ${S.hobbyLogs.slice(-6).reverse().map(l=>{
+          const h=S.hobbies.find(x=>x.id===l.hobbyId);
+          return `<div class="item"><div class="grow"><div class="t" style="font-weight:600">${esc(h?h.name:'—')}</div>
+          ${l.note?`<div class="s">${esc(l.note)}</div>`:''}</div>
+          <span class="s mono">${l.minutes} min · ${fShort(l.date)}</span></div>`;
+        }).join('')}</div>`:''}`;
+    const g=G();
+    V.querySelectorAll('[data-w]').forEach(i=>{
+      const w=i.dataset.w+'%';
+      if(g) g.to(i,{width:w,duration:.8,ease:'power2.out',delay:.15}); else i.style.width=w;
+    });
+    V.querySelectorAll('[data-hb]').forEach(c=>c.addEventListener('click',()=>{
+      const h=S.hobbies.find(x=>x.id===c.dataset.hb); if(h) hobbyForm(h);
+    }));
+  }
+};
+
+/* ---------- FINANZAS ---------- */
+let finY=new Date().getFullYear(), finM=new Date().getMonth();
+VIEWS.fin={
+  fab(){ finForm(); },
+  render(){
+    const mk=`${finY}-${String(finM+1).padStart(2,'0')}`;
+    const list=S.finance.filter(f=>(f.date||'').startsWith(mk)).sort((a,b)=>b.date.localeCompare(a.date));
+    const tin=list.filter(f=>f.type==='in').reduce((a,f)=>a+f.amount,0);
+    const tout=list.filter(f=>f.type==='out').reduce((a,f)=>a+f.amount,0);
+    const bal=tin-tout;
+    const cats={};
+    list.filter(f=>f.type==='out').forEach(f=>cats[f.cat]=(cats[f.cat]||0)+f.amount);
+    const catRows=Object.entries(cats).sort((a,b)=>b[1]-a[1]);
+    const maxCat=catRows[0]?.[1]||1;
+    V.innerHTML=`
+      <h1 class="vt vc">Finanzas</h1>
+      <div class="card vc">
+        <div class="calhead" style="margin-bottom:6px">
+          <button data-nav="-1">‹</button>
+          <div class="m">${MES[finM]} ${finY}</div>
+          <button data-nav="1">›</button>
+        </div>
+        <div class="lbl">Balance del mes</div>
+        <div class="balance" id="balN" style="color:${bal<0?'#9C3B2E':'var(--aink)'}">${fMoney(bal)}</div>
+        <div class="fin2">
+          <div class="fbox"><div class="lbl" style="margin-bottom:2px">Ingresos</div><b>${fMoney(tin)}</b></div>
+          <div class="fbox"><div class="lbl" style="margin-bottom:2px">Gastos</div><b>${fMoney(tout)}</b></div>
+        </div>
+      </div>
+      ${catRows.length?`<div class="card vc"><div class="lbl">Gastos por categoría</div>
+        ${catRows.map(([c,v])=>`<div class="catbar">
+          <span class="cn">${esc(c)}</span>
+          <div class="bar"><i data-w="${Math.round(v/maxCat*100)}"></i></div>
+          <span class="cv">${fMoney(v)}</span></div>`).join('')}</div>`:''}
+      <div class="card vc"><div class="lbl">Movimientos · ${list.length}</div>
+        ${list.length?list.map(f=>`<div class="item" data-fx="${f.id}" style="cursor:pointer">
+          <div class="grow"><div class="t" style="font-weight:600">${esc(f.desc||f.cat)}</div>
+          <div class="s">${fShort(f.date)} · ${esc(f.cat)}</div></div>
+          <span class="mono" style="font-size:13px;color:${f.type==='in'?'var(--deep)':'var(--ink)'}">${f.type==='in'?'+':'−'} ${fMoney(f.amount)}</span>
+        </div>`).join(''):'<div class="empty">Sin movimientos este mes</div>'}
+      </div>`;
+    const g=G();
+    if(g){
+      const o={v:0}, elB=V.querySelector('#balN');
+      g.to(o,{v:bal,duration:.9,ease:'power2.out',onUpdate:()=>elB.textContent=fMoney(o.v)});
+      V.querySelectorAll('[data-w]').forEach(i=>g.to(i,{width:i.dataset.w+'%',duration:.7,ease:'power2.out',delay:.2}));
+    } else V.querySelectorAll('[data-w]').forEach(i=>i.style.width=i.dataset.w+'%');
+    V.querySelectorAll('[data-nav]').forEach(b=>b.addEventListener('click',()=>{
+      finM+=+b.dataset.nav;
+      if(finM<0){finM=11;finY--;} if(finM>11){finM=0;finY++;}
+      VIEWS.fin.render(); entra();
+    }));
+    V.querySelectorAll('[data-fx]').forEach(r=>r.addEventListener('click',()=>{
+      const f=S.finance.find(x=>x.id===r.dataset.fx); if(f) finForm(f);
+    }));
+  }
+};
+
+/* ---------- AJUSTES ---------- */
+const PALS=[['greige','Greige','#B7AA92'],['sage','Salvia','#9DB08F'],['lav','Lavanda','#A99BC4'],
+            ['sky','Cielo','#92B4C4'],['blush','Rubor','#D0A3A0'],['clay','Arcilla','#C79A76']];
+VIEWS.ajustes={
+  fab:null,
+  render(){
+    V.innerHTML=`
+      <h1 class="vt vc">Ajustes</h1>
+      <div class="card vc"><div class="lbl">Tu nombre</div>
+        <div class="fld" style="margin:0"><input id="setName" value="${esc(S.settings.name||'')}" placeholder="¿Cómo te saludo?"></div>
+      </div>
+      <div class="card vc"><div class="lbl">Paleta de color</div>
+        <div class="pals">${PALS.map(([k,n,c])=>`
+          <div class="pal ${S.settings.pal===k?'on':''}" data-pal="${k}" title="${n}"><i style="background:${c}"></i></div>`).join('')}
+        </div>
+      </div>
+      <div class="card vc"><div class="lbl">Notificaciones</div>
+        <div class="item" style="border:none">
+          <div class="grow"><div class="t">Avisos de tomas y citas</div>
+          <div class="s">Con la app abierta, a la hora exacta</div></div>
+          <div class="cb ${S.settings.notif?'on':''}" id="ntg">${CHECK}</div>
+        </div>
+      </div>
+      <div class="card vc"><div class="lbl">Tus datos</div>
+        <div class="btnrow" style="margin-top:4px;flex-direction:column">
+          <button class="btn" id="expB">Exportar copia de seguridad</button>
+          <button class="btn" id="impB">Importar copia</button>
+          <button class="btn danger" id="wipeB">Borrar todo</button>
+        </div>
+        <input type="file" id="impF" accept=".json,application/json" style="display:none">
+        <div class="s muted" style="margin-top:10px;text-align:center">Todo se guarda solo en este dispositivo. Nada sale de acá.</div>
+      </div>
+      <div class="about vc">
+        <div class="a1">TEXMA — Planner personal</div>
+        <div class="a2">Hecho con amor para mi bombón · V1 ♥</div>
+      </div>`;
+    const nameI=V.querySelector('#setName');
+    nameI.addEventListener('change',()=>{ S.settings.name=nameI.value.trim(); save(); toast('Guardado ♥'); });
+    V.querySelectorAll('[data-pal]').forEach(p=>p.addEventListener('click',()=>{
+      S.settings.pal=p.dataset.pal; save();
+      document.body.dataset.pal=p.dataset.pal;
+      V.querySelectorAll('.pal').forEach(x=>x.classList.toggle('on',x===p));
+      toast('Paleta cambiada');
+    }));
+    V.querySelector('#ntg').addEventListener('click',async ev=>{
+      const cb=ev.currentTarget;
+      if(!S.settings.notif){
+        if(!('Notification' in window)) return toast('Este navegador no lo permite');
+        let perm=Notification.permission;
+        if(perm==='default') perm=await Notification.requestPermission();
+        if(perm!=='granted') return toast('Permiso denegado');
+        S.settings.notif=true;
+      } else S.settings.notif=false;
+      save(); cb.classList.toggle('on',S.settings.notif); popCB(cb);
+    });
+    V.querySelector('#expB').addEventListener('click',()=>{
+      const blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});
+      const a=document.createElement('a');
+      a.href=URL.createObjectURL(blob);
+      a.download=`texma-copia-${hoyISO()}.json`;
+      a.click(); URL.revokeObjectURL(a.href);
+      toast('Copia descargada ✓');
+    });
+    const impF=V.querySelector('#impF');
+    V.querySelector('#impB').addEventListener('click',()=>impF.click());
+    impF.addEventListener('change',()=>{
+      const f=impF.files[0]; if(!f) return;
+      const rd=new FileReader();
+      rd.onload=()=>{
+        try{
+          const d=JSON.parse(rd.result);
+          if(typeof d!=='object'||!d) throw 0;
+          S={...JSON.parse(JSON.stringify(DEF)),...d,settings:{...DEF.settings,...(d.settings||{})}};
+          save(); document.body.dataset.pal=S.settings.pal;
+          go('ajustes'); toast('Copia importada ✓');
+        }catch(e){ toast('Ese archivo no es una copia válida'); }
+      };
+      rd.readAsText(f);
+    });
+    V.querySelector('#wipeB').addEventListener('click',()=>{
+      if(!confirm('¿Borrar TODOS los datos? No se puede deshacer.')) return;
+      localStorage.removeItem(KEY);
+      S=JSON.parse(JSON.stringify(DEF)); save();
+      document.body.dataset.pal=S.settings.pal;
+      go('ajustes'); toast('Todo borrado');
+    });
+  }
+};
+
+/* ============================================================
+   NOTIFICACIONES LOCALES (con la app abierta)
+============================================================ */
+const fired={};
+setInterval(()=>{
+  if(!S.settings.notif||!('Notification' in window)||Notification.permission!=='granted') return;
+  const d=new Date();
+  const hm=`${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+  const today=hoyISO(), dow=d.getDay();
+  S.meds.forEach(m=>{
+    if(m.days&&m.days.length&&!m.days.includes(dow)) return;
+    (m.times||[]).forEach(t=>{
+      const k='m'+today+m.id+t;
+      if(t===hm&&!fired[k]){ fired[k]=1; try{ new Notification('TEXMA · medicamento',{body:`${m.name}${m.dose?' · '+m.dose:''} — ${t}`,icon:'icon.svg'}); }catch(e){} }
+    });
+  });
+  S.events.forEach(e=>{
+    const k='e'+e.id+today;
+    if(e.date===today&&e.time===hm&&!fired[k]){ fired[k]=1; try{ new Notification('TEXMA · agenda',{body:`${e.title}${e.place?' · '+e.place:''} — ${e.time}`,icon:'icon.svg'}); }catch(err){} }
+  });
+},20000);
+
+/* ============================================================
+   INICIO
+============================================================ */
+document.body.dataset.pal=S.settings.pal||'sage';
+(function(){
+  const d=new Date();
+  $('#topdate').textContent=`${DIA[d.getDay()].slice(0,3)} ${d.getDate()} ${MES[d.getMonth()].slice(0,3)}`.toUpperCase();
+})();
+go('hoy');
+const g0=G();
+if(g0){
+  g0.from('#top .brand',{y:-14,opacity:0,duration:.6,ease:'power2.out'});
+  g0.from('#nav',{y:30,duration:.5,ease:'power2.out',delay:.1});
+  g0.from('#fab',{scale:0,duration:.5,ease:'back.out(2)',delay:.3});
+}
+if('serviceWorker' in navigator && location.protocol.startsWith('http')){
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
+</script>
+</body>
+</html>

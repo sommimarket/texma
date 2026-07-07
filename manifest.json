@@ -1,0 +1,15 @@
+{
+  "name": "TEXMA · Planner personal",
+  "short_name": "TEXMA",
+  "description": "Planner personal: agenda, tareas, costura con medidas, notas y más.",
+  "lang": "es",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "background_color": "#F3EEE5",
+  "theme_color": "#F3EEE5",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+  ]
+}
