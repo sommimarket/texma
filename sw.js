@@ -1,5 +1,5 @@
 /* TEXMA · service worker · cache-first para funcionar 100% offline */
-const CACHE = 'texma-v3';
+const CACHE = 'texma-v4';
 const PRECACHE = [
   './',
   './index.html',
@@ -7,6 +7,11 @@ const PRECACHE = [
   './favicon.png',
   './icon-192.png',
   './icon-512.png',
+  './icon-mask.png',
+  './maniqui.png',
+  './onb1.jpg',
+  './onb2.jpg',
+  './onb3.jpg',
   'https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js',
   'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,500;1,600;1,700&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap'
 ];
