@@ -1,10 +1,10 @@
 /* TEXMA · service worker · cache-first para funcionar 100% offline */
-const CACHE = 'texma-v2';
+const CACHE = 'texma-v3';
 const PRECACHE = [
   './',
   './index.html',
   './manifest.json',
-  './icon.svg',
+  './favicon.png',
   './icon-192.png',
   './icon-512.png',
   'https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js',
