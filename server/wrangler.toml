@@ -1,0 +1,12 @@
+name = "texma-lic"
+main = "worker.js"
+compatibility_date = "2025-01-01"
+
+# URL donde está publicada la app (GitHub Pages)
+[vars]
+APP_URL = "https://sommimarket.github.io/texma/"
+
+# KV con las licencias — crear con:  npx wrangler kv namespace create LIC
+[[kv_namespaces]]
+binding = "LIC"
+id = "PEGAR_ID_DEL_KV"

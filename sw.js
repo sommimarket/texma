@@ -1,5 +1,5 @@
 /* TEXMA · service worker · cache-first para funcionar 100% offline */
-const CACHE = 'texma-v4';
+const CACHE = 'texma-v6';
 const PRECACHE = [
   './',
   './index.html',
@@ -29,6 +29,17 @@ self.addEventListener('activate', e => {
     caches.keys()
       .then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k))))
       .then(() => self.clients.claim())
+  );
+});
+
+/* tocar el aviso abre (o enfoca) TEXMA */
+self.addEventListener('notificationclick', e => {
+  e.notification.close();
+  e.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(cs => {
+      for (const c of cs) if ('focus' in c) return c.focus();
+      if (self.clients.openWindow) return self.clients.openWindow('./');
+    })
   );
 });
 

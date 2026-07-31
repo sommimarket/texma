@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TEXMA · Panel de ventas</title>
+<style>
+:root{--paper:#FAF7F1;--linen:#F3EEE5;--ink:#2B2622;--ink2:#75695C;--line:#E4DCCD;--deep:#EC1968;--tint:#FBD9E6}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--linen);color:var(--ink);font-family:Manrope,system-ui,sans-serif;font-size:15px;line-height:1.45}
+.wrap{max-width:820px;margin:0 auto;padding:24px 16px 60px}
+h1{font-family:Georgia,serif;font-style:italic;font-size:30px;margin-bottom:16px}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:14px}
+.lbl{font-size:10px;letter-spacing:1.6px;text-transform:uppercase;color:var(--ink2);margin-bottom:8px}
+input,button{font:inherit}
+input{width:100%;padding:11px 13px;border-radius:12px;border:1px solid var(--line);background:var(--linen);color:var(--ink);outline:none;margin-bottom:9px}
+button{background:var(--deep);color:#fff;border:none;padding:11px 18px;border-radius:12px;cursor:pointer;font-weight:700}
+button.g{background:transparent;color:var(--ink);border:1px solid var(--line);padding:7px 12px;font-size:12px;font-weight:600}
+.kpi{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.kpi div{background:var(--linen);border:1px solid var(--line);border-radius:14px;padding:11px 13px}
+.kpi .kl{font-size:9px;letter-spacing:1.2px;text-transform:uppercase;color:var(--ink2)}
+.kpi .kv{font-size:19px;font-weight:700;margin-top:3px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{text-align:left;padding:9px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:9px;letter-spacing:1.2px;text-transform:uppercase;color:var(--ink2)}
+code{font-family:ui-monospace,monospace;font-size:12px;background:var(--tint);padding:2px 6px;border-radius:6px}
+.ok{color:#2E7D5B;font-weight:700}.no{color:#9C3B2E;font-weight:700}
+.link{word-break:break-all;font-family:ui-monospace,monospace;font-size:11px;background:var(--linen);border:1px dashed var(--line);border-radius:10px;padding:10px;margin-top:8px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>TEXMA · ventas</h1>
+
+  <div class="card">
+    <div class="lbl">Acceso</div>
+    <input id="api" placeholder="https://texma-lic.tu-cuenta.workers.dev">
+    <input id="key" type="password" placeholder="Clave de admin">
+    <button id="go">Entrar</button>
+  </div>
+
+  <div id="app" style="display:none">
+    <div class="card">
+      <div class="lbl">Resumen</div>
+      <div class="kpi">
+        <div><div class="kl">Vendidas</div><div class="kv" id="kT">—</div></div>
+        <div><div class="kl">Activadas</div><div class="kv" id="kA">—</div></div>
+        <div><div class="kl">Facturado</div><div class="kv" id="kF">—</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="lbl">Nueva venta</div>
+      <input id="nNom" placeholder="Nombre de la clienta">
+      <input id="nCon" placeholder="WhatsApp / mail">
+      <input id="nPre" type="number" value="30000" placeholder="Precio">
+      <button id="nGo">Generar link único</button>
+      <div class="link" id="nOut" style="display:none"></div>
+    </div>
+
+    <div class="card">
+      <div class="lbl">Licencias</div>
+      <table><thead><tr><th>Código</th><th>Clienta</th><th>Estado</th><th>Precio</th><th></th></tr></thead>
+      <tbody id="tb"></tbody></table>
+    </div>
+  </div>
+</div>
+
+<script>
+const $=s=>document.querySelector(s);
+let API='',KEY='';
+const call=(path,body)=>fetch(API+path,{
+  method:body?'POST':'GET',
+  headers:{'content-type':'application/json','x-admin-key':KEY},
+  body:body?JSON.stringify(body):undefined
+}).then(r=>r.json());
+
+$('#go').addEventListener('click',async()=>{
+  API=$('#api').value.trim().replace(/\/$/,''); KEY=$('#key').value.trim();
+  localStorage.setItem('texma_panel',JSON.stringify({API}));
+  await lista();
+});
+(()=>{ try{ const s=JSON.parse(localStorage.getItem('texma_panel')||'{}'); if(s.API) $('#api').value=s.API; }catch(e){} })();
+
+async function lista(){
+  const d=await call('/admin/lista');
+  if(d.error) return alert(d.error);
+  $('#app').style.display='';
+  $('#kT').textContent=d.total;
+  $('#kA').textContent=d.activadas;
+  $('#kF').textContent='$ '+Number(d.facturado).toLocaleString('es-AR');
+  $('#tb').innerHTML=d.licencias.map(l=>`<tr>
+    <td><code>${l.code}</code></td>
+    <td>${l.nombre||'—'}<br><span style="color:#75695C;font-size:11px">${l.contacto||''}</span></td>
+    <td>${l.revoked?'<span class="no">dada de baja</span>':l.device?'<span class="ok">activada</span><br><span style="font-size:10px;color:#75695C">'+new Date(l.activatedAt).toLocaleDateString('es-AR')+'</span>':'sin usar'}</td>
+    <td>$ ${Number(l.precio||0).toLocaleString('es-AR')}</td>
+    <td><button class="g" data-r="${l.code}">Liberar celu</button>
+        <button class="g" data-x="${l.code}">${l.revoked?'Reactivar':'Dar de baja'}</button></td>
+  </tr>`).join('');
+  document.querySelectorAll('[data-r]').forEach(b=>b.onclick=async()=>{
+    if(!confirm('¿Liberar el dispositivo de '+b.dataset.r+'? Va a poder activarse de nuevo en otro celular.')) return;
+    await call('/admin/reset',{code:b.dataset.r}); lista();
+  });
+  document.querySelectorAll('[data-x]').forEach(b=>b.onclick=async()=>{
+    await call('/admin/revocar',{code:b.dataset.x}); lista();
+  });
+}
+
+$('#nGo').addEventListener('click',async()=>{
+  const r=await call('/admin/nueva',{nombre:$('#nNom').value,contacto:$('#nCon').value,precio:$('#nPre').value});
+  if(r.error) return alert(r.error);
+  $('#nOut').style.display='';
+  $('#nOut').innerHTML=`Código: <b>${r.code}</b><br>Link (se abre una sola vez):<br>${r.link}`;
+  $('#nNom').value=''; $('#nCon').value='';
+  lista();
+});
+</script>
+</body>
+</html>
