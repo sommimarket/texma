@@ -3,20 +3,29 @@
 Planner mobile-first, sin cuentas ni internet obligatorio. Todos los datos se
 guardan en el dispositivo (localStorage) y sobreviven al cerrar y volver a abrir.
 
-## App instalable (PWA) — PUBLICADA ✓
+## Dos formas de usarla
 
-**https://sommimarket.github.io/texma/**
+| | Cómo | Avisos |
+|---|---|---|
+| **Android** | APK propio → [`APK.md`](APK.md) | alarmas exactas, sin internet, **sonido de TEXMA** |
+| **iPhone / web** | PWA → https://sommimarket.github.io/texma/ | a la hora, sonido del sistema |
 
-En el celu: abrir esa URL en **Chrome** → menú ⋮ → **"Instalar app"**
-(o "Agregar a pantalla de inicio"). Queda con el ícono rosa de TEXMA y
-funciona 100% offline después de la primera visita.
+En iPhone: Safari → Compartir → *Agregar a inicio*.
+En Chrome: menú ⋮ → *Instalar app*. Funciona 100% offline después de la
+primera visita.
 
 Repo: https://github.com/sommimarket/texma (cuenta `sommimarket`).
-Para actualizar: editar los archivos, **subir el `CACHE` de `sw.js`**
-(`texma-v7` → `texma-v8`, etc.) y hacer `git push`. Si no se sube el número,
-el service worker sigue sirviendo la versión vieja.
+Para actualizar la PWA: editar `TEXMA.html`, copiarlo a `index.html`,
+**subir el `CACHE` de `sw.js`** (`texma-v11` → `texma-v12`) y `git push`. Si no
+se sube el número, el service worker sigue sirviendo la versión vieja.
 
 También se puede mandar `TEXMA.html` suelto por WhatsApp y abrirlo con Chrome.
+
+### Estructura
+
+Los archivos web viven en la **raíz** (GitHub Pages los publica desde ahí).
+`www/` se genera con `npm run build:web` solo para meterlo adentro del APK —
+no se edita a mano y no va al repo.
 
 ## Qué tiene
 
@@ -76,24 +85,32 @@ carga lo que corresponda a esa pantalla.
 
 ## Notificaciones
 
-Con la app abierta suenan a la hora exacta con el **sonido de TEXMA**
-(`notif-texma.mp3`, elegible en Perfil: TEXMA / del celu / mudo).
+Remedios, citas, pagos, agradecimiento, entrenamiento y ciclo. El sonido se
+elige en Perfil → Notificaciones: **TEXMA / del celu / mudo**.
 
-Para que avisen **con la app cerrada** hay que prender el **Web Push**: está
-todo listo en el código (`sw.js` + el bloque `AVISOS EN SEGUNDO PLANO` de
-`TEXMA.html`) y el backend en [`server/push/`](server/push/).
-Guía paso a paso: [`server/NOTIFICACIONES.md`](server/NOTIFICACIONES.md).
+**En el APK de Android** son alarmas del sistema: hora exacta, **con la app
+cerrada, sin internet y con el sonido de TEXMA**. No hace falta ningún
+servidor. Ver [`APK.md`](APK.md) y [`android/SONIDO.md`](android/SONIDO.md).
 
-⚠ Con la app cerrada el **sonido lo pone el celular** (canal de notificaciones
-del navegador): un sonido propio de TEXMA ahí solo se puede con la app nativa
-(APK con Capacitor). Está explicado en la misma guía.
+**En la PWA** suenan a la hora con la app abierta o recién usada, y hacen
+puesta al día al abrirla. Con la app cerrada el sonido lo pone el navegador —
+un sonido propio ahí es imposible en la web.
+
+Opcional, solo para avisar con la PWA cerrada (iPhone): **Web Push**, ya
+cableado en `sw.js` y en el bloque `AVISOS EN SEGUNDO PLANO` de `TEXMA.html`,
+con backend en [`server/push/`](server/push/). Guía:
+[`server/NOTIFICACIONES.md`](server/NOTIFICACIONES.md). Con el APK andando no
+hace falta.
 
 ## Copias de seguridad
 
-Ajustes → "Exportar copia de seguridad" descarga un `.json` con todo.
+Perfil → "Exportar copia de seguridad" descarga un `.json` con todo.
 Se restaura con "Importar copia" (acepta copias viejas de TEXMA y del viejo JIOM).
 
 ## Venta / licencias
 
-Ver [`server/README.md`](server/README.md). Mientras `LIC_ON = false` en
-`TEXMA.html`, la app funciona sin pedir código.
+Hoy: Cloudflare Worker, ver [`server/README.md`](server/README.md). Mientras
+`LIC_ON = false` en `TEXMA.html`, la app funciona sin pedir código.
+
+Casa futura de todas las apps (catálogo, licencias y panel multi-app en un solo
+Supabase): [`server/SUPABASE.md`](server/SUPABASE.md).

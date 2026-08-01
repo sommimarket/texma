@@ -1,4 +1,4 @@
-﻿.claude/
+.claude/
 logo-original.png
 1.png
 2.jpg
@@ -6,3 +6,21 @@ logo-original.png
 
 # cache de wrangler (no va al repo)
 server/.wrangler/
+
+# ---- Capacitor / APK ----
+node_modules/
+# www/ se genera con `npm run build:web` a partir de los archivos de la raíz
+www/
+android/build/
+android/app/build/
+android/.gradle/
+android/local.properties
+android/app/src/main/assets/public/
+android/capacitor-cordova-android-plugins/
+*.apk
+*.aab
+
+# ⚠ el keystore de firma NUNCA va al repo: sin él no podés actualizar la app
+*.keystore
+*.jks
+android/keystore.properties

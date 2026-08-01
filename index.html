@@ -9,9 +9,9 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="favicon.png?v=4" type="image/png">
 <link rel="apple-touch-icon" href="icon-192.png?v=4">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,500;1,600;1,700&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<!-- Tipografías locales: TEXMA no depende de internet, ni la primera vez.
+     Se regeneran con `node scripts/bajar-fuentes.mjs` -->
+<link rel="stylesheet" href="fonts/fonts.css">
 <style>
 :root{
   /* «only light» le prohíbe al celular oscurecer la app por su cuenta.
@@ -655,7 +655,7 @@ h1.vt{font-family:var(--serif);font-style:italic;font-weight:600;font-size:30px;
 <div id="sheet"><div class="grab"></div><h2 id="shTitle"></h2><div id="shBody"></div></div>
 <div id="toast"></div>
 
-<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+<script src="gsap.min.js"></script>
 <script>
 /* ============================================================
    TEXMA · planner personal · v1.2.0
@@ -800,10 +800,16 @@ function applyTheme(){
   st.setProperty('--ban2',hslHex(bh,Math.min(bs,85),Math.max(24,Math.min(52,bs>8?42:20))));
   document.querySelector('meta[name="theme-color"]').setAttribute('content',bc);
   document.querySelector('meta[name="color-scheme"]').setAttribute('content','only light');
+  /* en el APK, la barra de estado del celu también acompaña */
+  try{
+    const SB=window.Capacitor?.Plugins?.StatusBar;
+    if(SB){ SB.setBackgroundColor({color:bc}); SB.setStyle({style:'LIGHT'}); }
+  }catch(e){}
 }
 
 /* ---------- permiso de notificaciones ---------- */
 async function askNotif(){
+  if(NATIVO) return await nativoPermiso();
   if(!('Notification' in window)){ toast('Este navegador no lo permite'); return false; }
   let p=Notification.permission;
   if(p==='default') p=await Notification.requestPermission();
@@ -3064,7 +3070,9 @@ VIEWS.ajustes={
           <button data-val="sistema" class="${S.settings.nSound==='sistema'?'on':''}">Del celu</button>
           <button data-val="mudo" class="${S.settings.nSound==='mudo'?'on':''}">Mudo</button>
         </div>
-        <div class="s muted" style="margin-top:8px;font-size:11.5px">Con TEXMA abierta suena el sonido elegido. Con la app cerrada, el celular usa el sonido de notificaciones del navegador.</div>
+        <div class="s muted" style="margin-top:8px;font-size:11.5px">${NATIVO
+          ?'Suena siempre el sonido elegido, aunque TEXMA esté cerrada.'
+          :'Con TEXMA abierta suena el sonido elegido. Con la app cerrada, el celular usa el sonido de notificaciones del navegador.'}</div>
         <div class="btnrow" style="margin-top:10px;flex-direction:column">
           <button class="btn ghost" id="ntSnd">Escuchar el sonido</button>
           <button class="btn ghost" id="ntTest">Probar un aviso ahora</button>
@@ -3155,9 +3163,15 @@ VIEWS.ajustes={
       S.settings.nMods.entrenoTime=ev.target.value||'19:00'; save(); scheduleTriggers(); toast('Horario guardado ✓');
     });
     segWire(V,'.sSnd');
-    V.querySelectorAll('.sSnd button').forEach(bt=>bt.addEventListener('click',()=>{
+    V.querySelectorAll('.sSnd button').forEach(bt=>bt.addEventListener('click',async ()=>{
       S.settings.nSound=bt.dataset.val; save(); sndRoto=false;
       if(bt.dataset.val!=='mudo') playSound();
+      /* en el APK el sonido lo congela el canal de Android: hay que rehacerlo */
+      if(NATIVO){
+        const LN=plug('LocalNotifications');
+        try{ await LN.deleteChannel({id:CANAL}); }catch(e){}
+        await nativoIniciar(); await nativoProgramar();
+      }
     }));
     V.querySelector('#ntSnd').addEventListener('click',()=>{ sndRoto=false; playSound(); });
     V.querySelector('#ntTest').addEventListener('click',async ()=>{
@@ -3170,6 +3184,11 @@ VIEWS.ajustes={
       const dg=V.querySelector('#ntDiag');
       const perm=('Notification' in window)?Notification.permission:'no disponible';
       const inst=matchMedia('(display-mode: standalone)').matches;
+      if(NATIVO){
+        dg.innerHTML=`App de Android ✓ · Permiso: <b>${permNativo?'sí':'no'}</b> · Alarmas exactas del sistema: <b>sí</b>`
+          +'<br>Los avisos suenan a la hora justa aunque TEXMA esté cerrada y sin internet, con el sonido de TEXMA.';
+        return;
+      }
       const push=PUSH_ON&&PUSH_API&&VAPID_PUB;
       dg.innerHTML=`Permiso: <b>${perm}</b> · App instalada: <b>${inst?'sí':'no'}</b> · Avisos con la app cerrada: <b>${push?'sí (push)':HAS_TRIGGER?'sí':'no'}</b>`
         +(push||HAS_TRIGGER?'':'<br>Tu navegador solo avisa mientras TEXMA está abierta o en segundo plano reciente. Instalá la app («Agregar a pantalla de inicio») para que aguante más.');
@@ -3219,7 +3238,97 @@ VIEWS.ajustes={
 ============================================================ */
 let swReg=null;
 const HAS_TRIGGER=('Notification' in window)&&('showTrigger' in Notification.prototype);
-function notifOK(){ return ('Notification' in window)&&Notification.permission==='granted'&&S.settings.notif; }
+
+/* ============================================================
+   MODO APP INSTALADA (Capacitor / APK de Android)
+   ------------------------------------------------------------
+   Adentro del APK los avisos NO son del navegador: son alarmas
+   del sistema Android. Eso significa hora exacta, sin internet,
+   con la app cerrada y CON EL SONIDO PROPIO DE TEXMA.
+   En la web (PWA) nada de esto existe y sigue el camino de siempre.
+============================================================ */
+const NATIVO=!!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform());
+const CANAL='texma-avisos';
+const plug=n=>(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins[n])||null;
+let permNativo=false;
+
+/* Android exige que el id del aviso sea un número; se deriva de la clave */
+function idNum(k){
+  let h=2166136261;
+  for(let i=0;i<k.length;i++){ h^=k.charCodeAt(i); h=Math.imul(h,16777619); }
+  return (h>>>0)%2000000000+1;
+}
+
+async function nativoIniciar(){
+  if(!NATIVO) return;
+  const LN=plug('LocalNotifications'); if(!LN) return;
+  try{
+    /* el canal define el sonido: cambiarlo después NO tiene efecto,
+       Android lo congela. Si algún día cambia el mp3, hay que cambiar
+       también el id del canal (texma-avisos-2, etc.). */
+    await LN.createChannel({
+      id:CANAL, name:'Avisos de TEXMA',
+      description:'Remedios, citas, pagos y recordatorios',
+      importance:5, visibility:1, vibration:true, lights:true, lightColor:'#EC1968',
+      sound:(S.settings.nSound||'texma')==='texma'?'notif_texma.mp3':undefined,
+    });
+    const p=await LN.checkPermissions();
+    permNativo=p.display==='granted';
+    /* tocar el aviso lleva a la sección que corresponde */
+    LN.addListener('localNotificationActionPerformed',ev=>{
+      const v=ev?.notification?.extra?.view;
+      if(v&&VIEWS[v]) go(v);
+    });
+  }catch(e){}
+  const SB=plug('StatusBar');
+  if(SB){ try{ SB.setBackgroundColor({color:bannerColor()}); SB.setStyle({style:'LIGHT'}); }catch(e){} }
+}
+
+async function nativoPermiso(){
+  const LN=plug('LocalNotifications'); if(!LN) return false;
+  try{
+    let p=await LN.checkPermissions();
+    if(p.display!=='granted') p=await LN.requestPermissions();
+    permNativo=p.display==='granted';
+    if(!permNativo) toast('Bloqueado — activalo en los ajustes del celu');
+    return permNativo;
+  }catch(e){ return false; }
+}
+
+/* reprograma TODAS las alarmas de los próximos 7 días */
+async function nativoProgramar(){
+  if(!NATIVO||!permNativo||!S.settings.notif) return;
+  const LN=plug('LocalNotifications'); if(!LN) return;
+  try{
+    const pend=await LN.getPending();
+    if(pend?.notifications?.length) await LN.cancel({notifications:pend.notifications});
+    const conSonido=(S.settings.nSound||'texma')!=='mudo';
+    const lista=[];
+    for(let i=0;i<7;i++){
+      const d=new Date(); d.setDate(d.getDate()+i); const ds=iso(d);
+      dueList(ds).forEach(n=>{
+        const [H,M]=n.time.split(':').map(Number);
+        const cuando=new Date(d); cuando.setHours(H,M,0,0);
+        if(cuando.getTime()<=Date.now()+30000) return;
+        lista.push({
+          id:idNum(n.key), title:n.title, body:n.body,
+          schedule:{at:cuando,allowWhileIdle:true},
+          channelId:CANAL, smallIcon:'ic_stat_texma', iconColor:'#EC1968',
+          sound:conSonido&&(S.settings.nSound||'texma')==='texma'?'notif_texma.mp3':undefined,
+          extra:{view:n.key[0]==='m'?'meds':n.key[0]==='e'?'cal':n.key[0]==='r'?'fin':
+                      n.key[0]==='g'?'gracias':n.key[0]==='t'?'entreno':'hoy'},
+        });
+      });
+    }
+    /* Android aguanta ~500 alarmas; de sobra para una semana */
+    if(lista.length) await LN.schedule({notifications:lista.slice(0,450)});
+  }catch(e){}
+}
+
+function notifOK(){
+  if(NATIVO) return permNativo&&S.settings.notif;
+  return ('Notification' in window)&&Notification.permission==='granted'&&S.settings.notif;
+}
 
 /* ---------- sonido propio de TEXMA ----------
    Con la app abierta suena este archivo. Si no está subido todavía,
@@ -3262,6 +3371,19 @@ function chime(){
 }
 
 function notify(title,body,tag,when){
+  if(NATIVO){
+    const LN=plug('LocalNotifications');
+    if(!LN) return false;
+    try{
+      LN.schedule({notifications:[{
+        id:idNum(tag||'texma')+(when?0:1),title,body,
+        schedule:{at:new Date(when||Date.now()+1200),allowWhileIdle:true},
+        channelId:CANAL,smallIcon:'ic_stat_texma',iconColor:'#EC1968',
+        sound:(S.settings.nSound||'texma')==='texma'?'notif_texma.mp3':undefined,
+      }]});
+      return true;
+    }catch(e){ return false; }
+  }
   const opt={body,icon:'icon-192.png',badge:'icon-192.png',tag:tag||'texma',
     renotify:true,vibrate:[90,50,90],requireInteraction:false,silent:false,data:{t:Date.now()}};
   if(!when&&!document.hidden) playSound();
@@ -3320,6 +3442,7 @@ function firedMap(today){
   return S.fired.k;
 }
 function checkNotifs(){
+  if(NATIVO) return;   /* en el APK las alarmas las dispara Android */
   if(!notifOK()) return;
   const now=new Date(), today=hoyISO();
   const hm=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
@@ -3337,6 +3460,7 @@ function checkNotifs(){
 }
 /* alarmas reales programadas (solo donde el navegador lo soporta) */
 async function scheduleTriggers(){
+  if(NATIVO){ await nativoProgramar(); return; }
   if(!HAS_TRIGGER||!swReg||!notifOK()) return;
   try{
     const olds=await swReg.getNotifications({includeTriggered:false});
@@ -3716,7 +3840,11 @@ if(g0&&!document.hidden){
     const e=$(s); if(e){ e.style.transform=''; e.style.opacity=''; }
   }); },2500);
 }
-if('serviceWorker' in navigator && location.protocol.startsWith('http')){
+/* APK de Android: alarmas del sistema en vez de avisos del navegador */
+if(NATIVO){
+  nativoIniciar().then(()=>{ startNotifLoop(); });
+  document.addEventListener('visibilitychange',()=>{ if(!document.hidden) nativoProgramar(); });
+} else if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* si se publica una versión nueva, recargar sola una vez
      (solo si ya había un service worker: en la primera visita no hace falta) */
   const habiaSW=!!navigator.serviceWorker.controller;

@@ -1,5 +1,5 @@
 /* TEXMA · service worker · cache-first para funcionar 100% offline */
-const CACHE = 'texma-v11';
+const CACHE = 'texma-v12';
 const PRECACHE = [
   './',
   './index.html',
@@ -13,8 +13,14 @@ const PRECACHE = [
   './onb2.jpg',
   './onb3.jpg',
   './notif-texma.mp3',
-  'https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js',
-  'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,500;1,600;1,700&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap'
+  './gsap.min.js',
+  './fonts/fonts.css',
+  './fonts/cormorant-garamond-500i-latin.woff2',
+  './fonts/cormorant-garamond-500i-latin-ext.woff2',
+  './fonts/manrope-400-latin.woff2',
+  './fonts/manrope-400-latin-ext.woff2',
+  './fonts/jetbrains-mono-400-latin.woff2',
+  './fonts/jetbrains-mono-400-latin-ext.woff2'
 ];
 
 self.addEventListener('install', e => {
