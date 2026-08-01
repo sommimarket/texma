@@ -33,6 +33,28 @@ const ARCHIVOS = [
 /* sw.js NO va: adentro del APK el service worker no hace falta
    (los archivos ya son locales) y confunde a las actualizaciones. */
 
+/* ============================================================
+   TEXMA.html MANDA
+   ------------------------------------------------------------
+   Se edita TEXMA.html y nada más. index.html es una copia que
+   existe solo porque GitHub Pages necesita ese nombre. Antes había
+   que acordarse de copiarlo a mano y era cuestión de tiempo compilar
+   un index viejo (pasó: las keys de Supabase quedaron afuera del APK).
+   Ahora la copia la hace el build, siempre, antes de empaquetar.
+============================================================ */
+const fuente = join(raiz, 'TEXMA.html');
+const indice = join(raiz, 'index.html');
+if (existsSync(fuente)) {
+  const src = await readFile(fuente, 'utf8');
+  const actual = existsSync(indice) ? await readFile(indice, 'utf8') : null;
+  if (src !== actual) {
+    await writeFile(indice, src);
+    console.log('✓ TEXMA.html → index.html (estaban distintos)');
+  }
+} else {
+  console.log('⚠ no está TEXMA.html: empaqueto index.html tal como está');
+}
+
 await rm(www, { recursive: true, force: true });
 await mkdir(www, { recursive: true });
 
@@ -86,16 +108,6 @@ if (!verEnHtml) {
   }
 
   console.log(`✓ versión ${VER} (versionCode ${CODE}) → package.json + build.gradle`);
-}
-
-/* index.html es una copia de TEXMA.html: si no coinciden, el APK sale viejo */
-const fuente = join(raiz, 'TEXMA.html');
-if (existsSync(fuente)) {
-  const src = await readFile(fuente, 'utf8');
-  if (src !== await readFile(join(raiz, 'index.html'), 'utf8')) {
-    console.log('⚠ TEXMA.html e index.html NO son iguales.');
-    console.log('  Se empaquetó index.html. Si editaste TEXMA.html: cp TEXMA.html index.html');
-  }
 }
 
 console.log(`✓ www/ armado con ${ARCHIVOS.length - faltan.length} archivos`);

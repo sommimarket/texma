@@ -68,13 +68,18 @@ body::after{
 }
 #top .prow{display:flex;align-items:center;gap:13px;position:relative}
 #top .av{
-  width:52px;height:52px;min-width:52px;border-radius:99px;border:2.5px solid rgba(255,255,255,.55);
+  position:relative;
+  width:52px;height:52px;min-width:52px;flex:none;aspect-ratio:1;
+  border-radius:99px;border:2.5px solid rgba(255,255,255,.55);
   padding:0;display:grid;place-items:center;cursor:pointer;overflow:hidden;
   background:rgba(255,255,255,.2);color:#FFF;
   font-family:var(--serif);font-style:italic;font-weight:700;font-size:23px;line-height:1;
   box-shadow:0 4px 14px rgba(0,0,0,.18);
 }
-#top .av img{width:100%;height:100%;object-fit:cover;display:block}
+/* la foto va ABSOLUTA a propósito: así una imagen vertical no puede
+   estirar el círculo (una img en flujo aporta su alto real y el
+   min-height:auto de flex/grid le hace caso) */
+#top .av img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
 #top .av:active{scale:.94}
 #top .hgt{flex:1;min-width:0}
 #top .hsal{font-size:12px;color:rgba(255,255,255,.82);letter-spacing:.2px}
@@ -231,12 +236,20 @@ h1.vt{font-family:var(--serif);font-style:italic;font-weight:600;font-size:30px;
 /* ---------- perfil (cabecera de Ajustes) ---------- */
 .profhead{display:flex;flex-direction:column;align-items:center;text-align:center;gap:4px;margin:2px 0 20px}
 .profpic{
-  position:relative;flex:none;width:104px;height:104px;border-radius:99px;overflow:visible;cursor:pointer;
+  position:relative;flex:none;width:104px;height:104px;min-height:104px;aspect-ratio:1;
+  border-radius:99px;overflow:visible;cursor:pointer;
   background:linear-gradient(150deg,var(--ban),var(--ban2));display:grid;place-items:center;color:#FFF;
   font-family:var(--serif);font-style:italic;font-weight:700;font-size:42px;
   border:3px solid var(--paper);box-shadow:0 10px 26px rgba(43,38,34,.18);
 }
-.profpic img{width:100%;height:100%;object-fit:cover;display:block;border-radius:99px}
+/* absoluta, no en flujo: una foto vertical estiraba el círculo hasta
+   deformar la pantalla de bienvenida. Así el recorte lo hace object-fit
+   y el contenedor mide 104×104 pase lo que pase.
+   overflow queda visible porque la camarita cuelga del borde. */
+.profpic img{
+  position:absolute;inset:0;width:100%;height:100%;
+  object-fit:cover;object-position:center;display:block;border-radius:99px;
+}
 .profpic .cam{
   position:absolute;right:-2px;bottom:-2px;width:32px;height:32px;border-radius:99px;background:var(--paper);
   border:1px solid var(--line);display:grid;place-items:center;color:var(--ink);
@@ -671,7 +684,7 @@ h1.vt{font-family:var(--serif);font-style:italic;font-weight:600;font-size:30px;
      · package.json y el versionName/versionCode del APK
        (los sincroniza scripts/build-web.mjs en cada npm run sync)
    Al sacar un parche: cambiar el número acá y nada más.        */
-const APP_VER='1.2.1';
+const APP_VER='1.2.2';
 
 /* ---------- utilidades ---------- */
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
@@ -1057,9 +1070,12 @@ function bellSheet(){
   const today=hoyISO(), now=new Date();
   const hm=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
   const list=dueList(today);
-  const perm=('Notification' in window)?Notification.permission:'no';
+  /* OJO: acá antes se miraba Notification.permission, que adentro del APK
+     NUNCA pasa a 'granted' — el permiso de Android va por otro lado. Por eso
+     la tarjeta naranja quedaba pegada aunque los avisos ya estuvieran
+     activados. notifOK() sabe distinguir los dos mundos. */
   const b=sheet('Tus avisos de hoy',`
-    ${S.settings.notif&&perm==='granted'?'':`
+    ${notifOK()?'':`
       <div class="card vc" style="border-color:var(--mid);background:var(--tint)">
         <div class="t" style="font-weight:700">Los avisos están apagados</div>
         <div class="s muted" style="margin:4px 0 10px">Prendelos para que TEXMA te avise de remedios, citas y pagos.</div>
@@ -1075,7 +1091,9 @@ function bellSheet(){
     <div class="s muted" style="text-align:center;font-size:11.5px">Se revisan solos. Cambiá qué te avisa en Perfil → Notificaciones.</div>`);
   b.querySelector('#bellOn')?.addEventListener('click',async ()=>{
     if(!await askNotif()) return;
-    S.settings.notif=true; save(); startNotifLoop(); closeSheet(); paintTop(); toast('Avisos activados ✓');
+    S.settings.notif=true; save(); startNotifLoop(); paintTop();
+    bellSheet();   /* se vuelve a dibujar: la tarjeta naranja se va sola */
+    toast('Avisos activados ✓');
   });
 }
 
@@ -2263,7 +2281,7 @@ VIEWS.gracias={
       <div class="card vc"><div class="lbl">Recordatorio diario</div>
         <div class="item" style="border:none">
           <div class="grow"><div class="t">Avisarme para escribirlo</div>
-          <div class="s">Con la app abierta, a la hora elegida</div></div>
+          <div class="s">${NATIVO?'A la hora elegida, aunque TEXMA esté cerrada':'Con la app abierta, a la hora elegida'}</div></div>
           <input type="time" id="gT2" value="${S.settings.nMods.gratTime}" style="width:auto;padding:6px 8px;border:1px solid var(--line);border-radius:9px;background:var(--linen);color:var(--ink);font-family:var(--mono);font-size:12px">
           <div class="cb ${S.settings.nMods.grat?'on':''}" id="gTg">${CHECK}</div>
         </div>
@@ -2284,10 +2302,15 @@ VIEWS.gracias={
         S.settings.nMods.grat=true; S.settings.notif=true;
       } else S.settings.nMods.grat=false;
       save(); cb.classList.toggle('on',S.settings.nMods.grat); popCB(cb);
+      /* sin esto la alarma quedaba solo guardada en el teléfono pero
+         nunca se le pasaba a Android, así que no sonaba nada */
+      await scheduleTriggers();
       toast(S.settings.nMods.grat?'Te aviso todos los días ♥':'Recordatorio apagado');
     });
-    V.querySelector('#gT2').addEventListener('change',ev=>{
-      S.settings.nMods.gratTime=ev.target.value||'20:00'; save(); toast('Horario guardado ✓');
+    V.querySelector('#gT2').addEventListener('change',async ev=>{
+      S.settings.nMods.gratTime=ev.target.value||'20:00'; save();
+      await scheduleTriggers();
+      toast('Horario guardado ✓');
     });
   }
 };
@@ -3200,8 +3223,20 @@ VIEWS.ajustes={
       const perm=('Notification' in window)?Notification.permission:'no disponible';
       const inst=matchMedia('(display-mode: standalone)').matches;
       if(NATIVO){
-        dg.innerHTML=`App de Android ✓ · Permiso: <b>${permNativo?'sí':'no'}</b> · Alarmas exactas del sistema: <b>sí</b>`
-          +'<br>Los avisos suenan a la hora justa aunque TEXMA esté cerrada y sin internet, con el sonido de TEXMA.';
+        const pintar=n=>{
+          dg.innerHTML=`App de Android ✓ · Permiso: <b>${permNativo?'sí':'no'}</b>`
+            +` · Alarmas cargadas en Android: <b>${n}</b>`
+            +'<br>Los avisos suenan a la hora justa aunque TEXMA esté cerrada y sin internet, con el sonido de TEXMA.'
+            +(n===0?'<br><b>Ninguna alarma cargada.</b> Revisá que estén prendidos los avisos y alguno de los recordatorios de acá arriba.':'');
+        };
+        pintar('…');
+        /* el número real: si dice 0 con todo prendido, el problema es
+           del permiso o de Android, no de la agenda */
+        (async()=>{
+          const LN=plug('LocalNotifications');
+          try{ pintar((await LN.getPending()).notifications.length); }
+          catch(e){ pintar(ultProg<0?'error':ultProg); }
+        })();
         return;
       }
       const push=PUSH_ON&&PUSH_API&&VAPID_PUB;
@@ -3263,7 +3298,11 @@ const HAS_TRIGGER=('Notification' in window)&&('showTrigger' in Notification.pro
    En la web (PWA) nada de esto existe y sigue el camino de siempre.
 ============================================================ */
 const NATIVO=!!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform());
-const CANAL='texma-avisos';
+/* v1.2.2: el canal pasa a -2 a propósito. Android CONGELA el sonido del
+   canal cuando se crea, y los celulares que instalaron el APK anterior
+   armaron 'texma-avisos' cuando el mp3 todavía no estaba en res/raw:
+   ahí el aviso queda mudo para siempre. Con un id nuevo, canal nuevo. */
+const CANAL='texma-avisos-2';
 const plug=n=>(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins[n])||null;
 let permNativo=false;
 
@@ -3311,9 +3350,16 @@ async function nativoPermiso(){
 }
 
 /* reprograma TODAS las alarmas de los próximos 7 días */
+let ultProg=0;   /* cuántas alarmas quedaron cargadas (para el diagnóstico) */
 async function nativoProgramar(){
-  if(!NATIVO||!permNativo||!S.settings.notif) return;
+  if(!NATIVO||!S.settings.notif) return;
   const LN=plug('LocalNotifications'); if(!LN) return;
+  /* el permiso puede haberse concedido desde los ajustes del celu con la
+     app abierta: si lo damos por perdido, no se programa nunca más nada */
+  if(!permNativo){
+    try{ permNativo=(await LN.checkPermissions()).display==='granted'; }catch(e){}
+    if(!permNativo) return;
+  }
   try{
     const pend=await LN.getPending();
     if(pend?.notifications?.length) await LN.cancel({notifications:pend.notifications});
@@ -3337,7 +3383,8 @@ async function nativoProgramar(){
     }
     /* Android aguanta ~500 alarmas; de sobra para una semana */
     if(lista.length) await LN.schedule({notifications:lista.slice(0,450)});
-  }catch(e){}
+    ultProg=Math.min(lista.length,450);
+  }catch(e){ ultProg=-1; console.warn('[TEXMA] no pude programar las alarmas:',e); }
 }
 
 function notifOK(){
@@ -3731,8 +3778,8 @@ function showProfileSetup(){
    (Supabase → Project Settings → API). Con los campos vacíos la función
    no hace nada y la app sigue andando igual. Ver server/SUPABASE.md.
 ============================================================ */
-const SUPA_URL='';    /* ← ej: https://xxxxxxxx.supabase.co  (sin barra al final) */
-const SUPA_ANON='';   /* ← anon / public key */
+const SUPA_URL=''; /*https://adwroskikbnbizagelqc.supabase.co    /* ← ej: https://xxxxxxxx.supabase.co  (sin barra al final) */
+const SUPA_ANON=''; /* eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFkd3Jvc2tpa2JuYml6YWdlbHFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU2MDQxNTUsImV4cCI6MjEwMTE4MDE1NX0.HmKNizVh2VVh8bQMLs8mMnYbdKKDCKc52krOAcDruh8   /* ← anon / public key */
 const APP_ID='texma';
 const UPDK='texma_upd';
 
