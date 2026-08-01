@@ -1,5 +1,5 @@
 /* TEXMA · service worker · cache-first para funcionar 100% offline */
-const CACHE = 'texma-v12';
+const CACHE = 'texma-v13';
 const PRECACHE = [
   './',
   './index.html',
@@ -12,7 +12,7 @@ const PRECACHE = [
   './onb1.jpg',
   './onb2.jpg',
   './onb3.jpg',
-  './notif-texma.mp3',
+  './notif_texma.mp3',
   './gsap.min.js',
   './fonts/fonts.css',
   './fonts/cormorant-garamond-500i-latin.woff2',

@@ -25,7 +25,7 @@ const ARCHIVOS = [
   'onb1.jpg',
   'onb2.jpg',
   'onb3.jpg',
-  'notif-texma.mp3',
+  'notif_texma.mp3',
   'gsap.min.js',
   'fonts',          // carpeta entera: fonts.css + los .woff2
 ];
@@ -56,9 +56,9 @@ await writeFile(
 console.log(`✓ www/ armado con ${ARCHIVOS.length - faltan.length} archivos`);
 if (faltan.length) {
   console.log(`⚠ faltan (no es fatal): ${faltan.join(', ')}`);
-  if (faltan.includes('notif-texma.mp3')) {
-    console.log('  → sin notif-texma.mp3 la app usa la campanita sintetizada.');
+  if (faltan.includes('notif_texma.mp3')) {
+    console.log('  → sin notif_texma.mp3 la app usa la campanita sintetizada.');
     console.log('    Para el sonido propio del APK, además hay que dejarlo en');
-    console.log('    android/app/src/main/res/raw/notif_texma.mp3 (guión BAJO).');
+    console.log('    android/app/src/main/res/raw/notif_texma.mp3 (mismo nombre).');
   }
 }

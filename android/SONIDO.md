@@ -23,8 +23,9 @@ npm run sync
 npm run apk:debug
 ```
 
-El mismo sonido va también en la raíz del proyecto como **`notif-texma.mp3`**
-(con guión medio) — ese es el que usa la versión web/PWA.
+El mismo sonido va también en la raíz del proyecto, **con el mismo nombre**
+`notif_texma.mp3` — ese es el que usa la versión web/PWA. Un solo nombre en
+todo el proyecto: nunca guión medio, ni en la raíz ni en `res/raw/`.
 
 ## ⚠ Si más adelante cambiás el mp3
 
