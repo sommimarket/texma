@@ -13,7 +13,7 @@ funciona 100% offline después de la primera visita.
 
 Repo: https://github.com/sommimarket/texma (cuenta `sommimarket`).
 Para actualizar: editar los archivos, **subir el `CACHE` de `sw.js`**
-(`texma-v6` → `texma-v7`, etc.) y hacer `git push`. Si no se sube el número,
+(`texma-v7` → `texma-v8`, etc.) y hacer `git push`. Si no se sube el número,
 el service worker sigue sirviendo la versión vieja.
 
 También se puede mandar `TEXMA.html` suelto por WhatsApp y abrirlo con Chrome.
@@ -46,9 +46,16 @@ También se puede mandar `TEXMA.html` suelto por WhatsApp y abrirlo con Chrome.
   inventario, alertas de reposición y movimientos de entrada/venta que pueden
   ir directo a Finanzas.
 - **Notas, Agradecimientos, Pasatiempos, Medicamentos.**
-- **Ajustes**: nombre, tema **Sistema / Claro / Oscuro** (claro y oscuro mandan
-  aunque el celu esté al revés), 7 paletas + color libre, secciones on/off,
+- **Ajustes**: nombre, tema **Claro / Oscuro** (arranca siempre en claro y no
+  depende de cómo esté el celular), 7 paletas + color libre, secciones on/off,
   notificaciones con prueba y diagnóstico, exportar/importar copia, borrar todo.
+
+## Navegación
+
+Barra oscura flotante con 4 pestañas — **Hoy · Agenda · Costura · Finanzas** — y
+el botón **+** en el centro, que agrega lo que corresponda a la sección donde
+estés. El resto de las secciones se abren desde el **menú ☰** arriba a la derecha
+(tarjetas de colores) o desde los **accesos rápidos** de la pantalla Hoy.
 
 ## Notificaciones
 

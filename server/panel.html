@@ -32,21 +32,26 @@ code{font-family:ui-monospace,monospace;font-size:12px;background:var(--tint);pa
 <div class="wrap">
   <h1>TEXMA · ventas</h1>
 
-  <div class="card">
+  <div class="card" id="login">
     <div class="lbl">Acceso</div>
     <input id="api" placeholder="https://texma-lic.tu-cuenta.workers.dev">
-    <input id="key" type="password" placeholder="Clave de admin">
+    <input id="key" type="password" placeholder="Tu clave (la que pusiste en ADMIN_KEYS)">
+    <label style="display:block;font-size:12px;color:#75695C;margin:2px 0 10px">
+      <input type="checkbox" id="rec" style="width:auto;margin:0 6px 0 0"> Recordar la clave en esta compu
+    </label>
     <button id="go">Entrar</button>
+    <div id="err" style="color:#9C3B2E;font-size:13px;margin-top:10px"></div>
   </div>
 
   <div id="app" style="display:none">
     <div class="card">
-      <div class="lbl">Resumen</div>
+      <div class="lbl">Resumen · <span id="quien"></span></div>
       <div class="kpi">
         <div><div class="kl">Vendidas</div><div class="kv" id="kT">—</div></div>
         <div><div class="kl">Activadas</div><div class="kv" id="kA">—</div></div>
         <div><div class="kl">Facturado</div><div class="kv" id="kF">—</div></div>
       </div>
+      <div id="porV" style="margin-top:12px"></div>
     </div>
 
     <div class="card">
@@ -60,7 +65,7 @@ code{font-family:ui-monospace,monospace;font-size:12px;background:var(--tint);pa
 
     <div class="card">
       <div class="lbl">Licencias</div>
-      <table><thead><tr><th>Código</th><th>Clienta</th><th>Estado</th><th>Precio</th><th></th></tr></thead>
+      <table><thead><tr><th>Código</th><th>Clienta</th><th>Estado</th><th>Vendió</th><th>Precio</th><th></th></tr></thead>
       <tbody id="tb"></tbody></table>
     </div>
   </div>
@@ -77,22 +82,38 @@ const call=(path,body)=>fetch(API+path,{
 
 $('#go').addEventListener('click',async()=>{
   API=$('#api').value.trim().replace(/\/$/,''); KEY=$('#key').value.trim();
-  localStorage.setItem('texma_panel',JSON.stringify({API}));
+  $('#err').textContent='';
+  if(!API||!KEY){ $('#err').textContent='Faltan la URL o la clave.'; return; }
+  const st={API}; if($('#rec').checked) st.KEY=KEY;
+  localStorage.setItem('texma_panel',JSON.stringify(st));
   await lista();
 });
-(()=>{ try{ const s=JSON.parse(localStorage.getItem('texma_panel')||'{}'); if(s.API) $('#api').value=s.API; }catch(e){} })();
+(()=>{ try{
+  const s=JSON.parse(localStorage.getItem('texma_panel')||'{}');
+  if(s.API) $('#api').value=s.API;
+  if(s.KEY){ $('#key').value=s.KEY; $('#rec').checked=true; }
+}catch(e){} })();
 
 async function lista(){
-  const d=await call('/admin/lista');
-  if(d.error) return alert(d.error);
+  let d;
+  try{ d=await call('/admin/lista'); }
+  catch(e){ $('#err').textContent='No pude conectar con el Worker. ¿La URL está bien?'; return; }
+  if(d.error){ $('#err').textContent=d.error; return; }
   $('#app').style.display='';
+  $('#login').style.display='none';
+  $('#quien').textContent='hola, '+(d.yo||'dueño');
   $('#kT').textContent=d.total;
   $('#kA').textContent=d.activadas;
   $('#kF').textContent='$ '+Number(d.facturado).toLocaleString('es-AR');
+  const pv=Object.entries(d.porVendedor||{});
+  $('#porV').innerHTML=pv.length>1?'<table><thead><tr><th>Vendedor</th><th>Vendidas</th><th>Activadas</th><th>Facturado</th></tr></thead><tbody>'
+    +pv.map(([n,x])=>`<tr><td>${n}</td><td>${x.vendidas}</td><td>${x.activadas}</td><td>$ ${Number(x.facturado).toLocaleString('es-AR')}</td></tr>`).join('')
+    +'</tbody></table>':'';
   $('#tb').innerHTML=d.licencias.map(l=>`<tr>
     <td><code>${l.code}</code></td>
     <td>${l.nombre||'—'}<br><span style="color:#75695C;font-size:11px">${l.contacto||''}</span></td>
     <td>${l.revoked?'<span class="no">dada de baja</span>':l.device?'<span class="ok">activada</span><br><span style="font-size:10px;color:#75695C">'+new Date(l.activatedAt).toLocaleDateString('es-AR')+'</span>':'sin usar'}</td>
+    <td>${l.vendedor||'—'}</td>
     <td>$ ${Number(l.precio||0).toLocaleString('es-AR')}</td>
     <td><button class="g" data-r="${l.code}">Liberar celu</button>
         <button class="g" data-x="${l.code}">${l.revoked?'Reactivar':'Dar de baja'}</button></td>

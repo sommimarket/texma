@@ -9,9 +9,13 @@
      POST /admin/revocar       { code }                             admin
      GET  /admin/lista                                              admin
    Secretos (wrangler secret put)
-     LIC_PRIV   JWK privada de firma (server/keygen.mjs)
-     ADMIN_KEY  contraseña del panel
+     LIC_PRIV    JWK privada de firma (server/keygen.mjs)
+     ADMIN_KEYS  JSON con una clave por persona, ej:
+                 {"lucas":"clave-larga-1","melu":"clave-larga-2"}
+     ADMIN_KEY   (opcional, compatibilidad: una sola clave)
    Binding KV:  LIC
+   No hay usuario: la clave ES el usuario. Cada venta queda firmada con
+   el nombre de quien la generó.
 ============================================================ */
 
 const CORS = {
@@ -43,7 +47,23 @@ function newCode() {
   const g = () => [...crypto.getRandomValues(new Uint8Array(4))].map(b => A[b % A.length]).join('');
   return `${g()}-${g()}-${g()}`;
 }
-const admin = (req, env) => req.headers.get('x-admin-key') === env.ADMIN_KEY;
+/* comparación en tiempo constante para no filtrar la clave por timing */
+function same(a, b) {
+  if (typeof a !== 'string' || typeof b !== 'string' || a.length !== b.length) return false;
+  let d = 0;
+  for (let i = 0; i < a.length; i++) d |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return d === 0;
+}
+/* devuelve el nombre del dueño/vendedor si la clave es válida, o null */
+function whoIs(req, env) {
+  const k = req.headers.get('x-admin-key') || '';
+  if (!k) return null;
+  let map = {};
+  try { map = JSON.parse(env.ADMIN_KEYS || '{}'); } catch (e) { map = {}; }
+  if (env.ADMIN_KEY && !map.dueño) map['dueño'] = env.ADMIN_KEY;
+  for (const [nombre, clave] of Object.entries(map)) if (same(k, clave)) return nombre;
+  return null;
+}
 
 export default {
   async fetch(req, env) {
@@ -90,14 +110,15 @@ export default {
 
     /* ---------- panel de dueño ---------- */
     if (p.startsWith('/admin/')) {
-      if (!admin(req, env)) return json({ error: 'No autorizado' }, 401);
+      const yo = whoIs(req, env);
+      if (!yo) return json({ error: 'Clave incorrecta' }, 401);
 
       if (p === '/admin/nueva' && req.method === 'POST') {
         const { nombre, contacto, precio } = await req.json().catch(() => ({}));
         const code = newCode();
         const lic = {
           code, nombre: nombre || '', contacto: contacto || '',
-          precio: +precio || 30000, createdAt: Date.now(),
+          precio: +precio || 30000, createdAt: Date.now(), vendedor: yo,
           device: '', activatedAt: 0, opens: 0, revoked: false,
         };
         await env.LIC.put('lic:' + code, JSON.stringify(lic));
@@ -113,10 +134,19 @@ export default {
         const out = [];
         for (const k of ls.keys) out.push(JSON.parse(await env.LIC.get(k.name)));
         out.sort((a, b) => b.createdAt - a.createdAt);
+        const porVendedor = {};
+        out.forEach(l => {
+          const v = l.vendedor || '—';
+          const x = porVendedor[v] = porVendedor[v] || { vendidas: 0, activadas: 0, facturado: 0 };
+          x.vendidas++;
+          if (l.device) { x.activadas++; x.facturado += +l.precio || 0; }
+        });
         return json({
+          yo,
           total: out.length,
           activadas: out.filter(l => l.device).length,
           facturado: out.filter(l => l.device).reduce((s, l) => s + (+l.precio || 0), 0),
+          porVendedor,
           licencias: out,
         });
       }

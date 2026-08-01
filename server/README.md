@@ -30,10 +30,31 @@ Sube mucho el costo de romperlo, pero tampoco es infinito.
    cd server
    npx wrangler kv namespace create LIC      # copiá el id en wrangler.toml
    npx wrangler secret put LIC_PRIV          # pegá el JSON de la clave privada
-   npx wrangler secret put ADMIN_KEY         # inventá una contraseña larga
+   npx wrangler secret put ADMIN_KEYS        # ver abajo
    npx wrangler deploy
    ```
    Anotá la URL que te devuelve (`https://texma-lic.TU-CUENTA.workers.dev`).
+
+   **`ADMIN_KEYS` — quién entra al panel.** No hay usuario ni registro: la clave
+   *es* el usuario. Vos la inventás. Se pega este JSON con una clave larga por
+   persona (mínimo 20 caracteres, que no sea una palabra):
+
+   ```json
+   {"lucas":"kQ7v-panel-texma-2026-x9Lm","melu":"tR4w-panel-melu-2026-p2Zq"}
+   ```
+
+   Para sumar a tu pareja: agregás su nombre al JSON, volvés a correr
+   `npx wrangler secret put ADMIN_KEYS` con el JSON completo (reemplaza al
+   anterior) y `npx wrangler deploy`. Le pasás la URL del Worker + su clave y
+   ya genera links ella también. Cada venta queda firmada con el nombre de quien
+   la generó, y el panel muestra el total por vendedor.
+
+   Para sacarle el acceso a alguien: lo borrás del JSON y volvés a subirlo.
+
+   Generar una clave al azar:
+   ```
+   node -e "console.log(require('crypto').randomBytes(18).toString('base64url'))"
+   ```
 
 3. **Prender la licencia en la app**
    En `TEXMA.html`:
@@ -45,8 +66,10 @@ Sube mucho el costo de romperlo, pero tampoco es infinito.
    si no el service worker sirve la versión vieja.
 
 4. **Panel de dueño**
-   Abrí `server/panel.html` (sirve desde el disco). Poné la URL del Worker y la `ADMIN_KEY`.
-   Ahí ves ventas, activaciones, facturado, y generás links.
+   Abrí `server/panel.html` con doble clic (funciona desde el disco, no hace falta
+   subirlo a ningún lado — y mejor que no lo subas). Poné la URL del Worker y tu
+   clave. Ahí ves ventas, activaciones, facturado, el total por vendedor, y generás
+   los links.
 
 ## Vender
 
