@@ -216,7 +216,13 @@ async function conectar(){
     show('#cardSetup',d.setup); show('#cardLogin',!d.setup);
     $('#loginSub').textContent=d.setup?'Todavía no hay ninguna cuenta. Creá la tuya.':'Entrá con tu usuario y contraseña.';
     ($(d.setup?'#sNom':'#lUser')).focus();
-  }catch(e){ $('#errApi').textContent='No pude conectar con el servidor. Revisá la URL.'; }
+  }catch(e){
+    $('#errApi').innerHTML='No hay ningún servidor en esa dirección.<br>'
+      +'Si todavía no publicaste el Worker en Cloudflare, este panel no tiene con qué hablar: '
+      +'seguí los pasos de <b>server/GUIA.md</b> y volvé.<br>'
+      +'Si ya lo publicaste, pegá la URL <b>tal cual</b> te la dio Cloudflare '
+      +'(termina en <code>.workers.dev</code> y no lleva nada después).';
+  }
 }
 
 /* ---------- crear cuenta / entrar ---------- */

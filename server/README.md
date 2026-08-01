@@ -1,5 +1,9 @@
 # TEXMA · sistema de licencias
 
+> **¿Primera vez? Andá a [GUIA.md](GUIA.md)** — está explicado paso a paso, sin
+> dar nada por sabido: qué es el Worker, de dónde sale la URL, y qué escribir en
+> la terminal. Este archivo es el resumen técnico.
+
 Todo esto es **opcional**: mientras `LIC_ON = false` en `TEXMA.html`, la app funciona sin pedir nada.
 Cuando quieras empezar a vender, seguí estos pasos.
 

@@ -33,6 +33,16 @@ body[data-pal="rosa"]  {--tint:#FBD9E6;--mid:#F27BA6;--deep:#EC1968;--aink:#A610
 
 /* ---------- modo oscuro ---------- */
 html.dark{color-scheme:only dark}
+
+/* ---------- rescate: el celular oscurece la app por su cuenta ----------
+   Algunos Android (Chrome con "oscurecer sitios web", Samsung Internet)
+   invierten los colores igual, ignorando color-scheme. Este interruptor
+   invierte de vuelta, así queda como corresponde. */
+html.fixdark #app,html.fixdark #nav,html.fixdark #fab,html.fixdark #sheet,
+html.fixdark #toast,html.fixdark #dlg,html.fixdark #pv,html.fixdark #lic,
+html.fixdark #onb{filter:invert(1) hue-rotate(180deg)}
+html.fixdark img,html.fixdark video{filter:invert(1) hue-rotate(180deg)}
+html.fixdark #app{background:var(--linen)}
 body.dark{--paper:#26221D;--linen:#1C1916;--ink:#EDE7DD;--ink2:#A89C8D;--line:#3B352C}
 body.dark::after{opacity:.09}
 body.dark #nav{background:rgba(28,25,22,.92)}
@@ -566,7 +576,7 @@ function weekStart(){ const d=new Date(); d.setDate(d.getDate()-((d.getDay()+6)%
 const KEY='texma';
 const DEF={
   settings:{pal:'rosa',name:'',notif:false,theme:'light',dark:false,customPal:'',cats:{in:[],out:[]},onboarded:false,
-    shopCats:[],stockCats:[],cycleOn:true,stockOn:true,
+    shopCats:[],stockCats:[],cycleOn:true,stockOn:true,fixDark:false,
     cycle:{avgCycle:28,avgPeriod:5},
     nMods:{events:true,meds:true,pagos:true,grat:false,gratTime:'20:00',entreno:false,entrenoTime:'19:00',ciclo:false}},
   events:[],tasks:[],notes:[],routines:[],workoutLogs:[],trainLogs:[],
@@ -662,6 +672,7 @@ function applyTheme(){
   const dark=isDark();
   S.settings.dark=dark; /* compatibilidad con copias viejas */
   document.documentElement.classList.toggle('dark',dark);
+  document.documentElement.classList.toggle('fixdark',!!S.settings.fixDark);
   document.body.classList.toggle('dark',dark);
   document.body.dataset.pal=PALS.some(p=>p[0]===S.settings.pal)?S.settings.pal:'rosa';
   const [h,s]=hexHsl(palBase()), st=document.body.style;
@@ -2824,6 +2835,11 @@ VIEWS.ajustes={
           <button data-val="dark" class="${S.settings.theme==='dark'?'on':''}">☾ Oscuro</button>
         </div>
         <div class="s muted" style="margin-top:8px">TEXMA arranca siempre en claro. El modo oscuro se prende acá y no depende de cómo esté el celular.</div>
+        <div class="item" style="margin-top:10px;border-top:1px solid var(--line);border-bottom:none;padding-top:12px">
+          <div class="grow"><div class="t">Mi celular la oscurece igual</div>
+          <div class="s">Prendelo solo si elegiste Claro y se sigue viendo oscura</div></div>
+          <div class="cb ${S.settings.fixDark?'on':''}" id="fxd">${CHECK}</div>
+        </div>
       </div>
       <div class="card vc"><div class="lbl">Secciones</div>
         <div class="item"><div class="grow"><div class="t">Ciclo menstrual</div>
@@ -2900,6 +2916,11 @@ VIEWS.ajustes={
       S.settings.theme=bt.dataset.val; save(); applyTheme();
       toast(bt.dataset.val==='dark'?'Modo oscuro ☾':'Modo claro ☀');
     }));
+    V.querySelector('#fxd').addEventListener('click',ev=>{
+      S.settings.fixDark=!S.settings.fixDark; save(); applyTheme();
+      ev.currentTarget.classList.toggle('on',S.settings.fixDark); popCB(ev.currentTarget);
+      toast(S.settings.fixDark?'Colores corregidos':'Corrección apagada');
+    });
     V.querySelectorAll('[data-sec]').forEach(cb=>cb.addEventListener('click',()=>{
       const k=cb.dataset.sec;
       S.settings[k]=!S.settings[k]; save();
