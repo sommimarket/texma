@@ -30,31 +30,12 @@ Sube mucho el costo de romperlo, pero tampoco es infinito.
    cd server
    npx wrangler kv namespace create LIC      # copiá el id en wrangler.toml
    npx wrangler secret put LIC_PRIV          # pegá el JSON de la clave privada
-   npx wrangler secret put ADMIN_KEYS        # ver abajo
    npx wrangler deploy
    ```
    Anotá la URL que te devuelve (`https://texma-lic.TU-CUENTA.workers.dev`).
 
-   **`ADMIN_KEYS` — quién entra al panel.** No hay usuario ni registro: la clave
-   *es* el usuario. Vos la inventás. Se pega este JSON con una clave larga por
-   persona (mínimo 20 caracteres, que no sea una palabra):
-
-   ```json
-   {"lucas":"kQ7v-panel-texma-2026-x9Lm","melu":"tR4w-panel-melu-2026-p2Zq"}
-   ```
-
-   Para sumar a tu pareja: agregás su nombre al JSON, volvés a correr
-   `npx wrangler secret put ADMIN_KEYS` con el JSON completo (reemplaza al
-   anterior) y `npx wrangler deploy`. Le pasás la URL del Worker + su clave y
-   ya genera links ella también. Cada venta queda firmada con el nombre de quien
-   la generó, y el panel muestra el total por vendedor.
-
-   Para sacarle el acceso a alguien: lo borrás del JSON y volvés a subirlo.
-
-   Generar una clave al azar:
-   ```
-   node -e "console.log(require('crypto').randomBytes(18).toString('base64url'))"
-   ```
+   **No hay ninguna clave que configurar acá.** Tu usuario y contraseña los
+   creás vos desde el panel, la primera vez que lo abrís (paso 4).
 
 3. **Prender la licencia en la app**
    En `TEXMA.html`:
@@ -65,11 +46,29 @@ Sube mucho el costo de romperlo, pero tampoco es infinito.
    Subí los cambios y **subí el número de `CACHE` en `sw.js`** (`texma-v5` → `texma-v6`),
    si no el service worker sirve la versión vieja.
 
-4. **Panel de dueño**
+4. **Panel — tu usuario y contraseña**
    Abrí `server/panel.html` con doble clic (funciona desde el disco, no hace falta
-   subirlo a ningún lado — y mejor que no lo subas). Poné la URL del Worker y tu
-   clave. Ahí ves ventas, activaciones, facturado, el total por vendedor, y generás
-   los links.
+   subirlo a ningún lado — y mejor que no lo subas).
+
+   1. Pegá la URL del Worker → **Conectar**.
+   2. Como todavía no hay ninguna cuenta, te muestra **«Primera vez · creá tu
+      cuenta»**. Ponés tu nombre, el usuario y la contraseña que vos quieras
+      (mínimo 8 caracteres, con el ojito para verla mientras la escribís).
+   3. Esa primera cuenta queda como **dueño**. Listo, ya estás adentro.
+
+   La contraseña se guarda en el servidor hasheada con PBKDF2 (120 mil vueltas
+   + salt al azar). Ni nosotros podemos leerla, así que si la perdés hay que
+   borrar la cuenta a mano desde Cloudflare (`wrangler kv key delete`).
+
+   **Invitar a tu pareja**: dentro del panel, tarjeta *«Quién puede entrar»* →
+   ponés su nombre, un usuario y una contraseña (hay un botón que sugiere una).
+   Al crearla te muestra un cartel con los tres datos para pasarle: servidor,
+   usuario y contraseña. Ella entra desde su compu con `panel.html` y genera sus
+   propios links. Cada venta queda firmada con el nombre de quien la hizo, y el
+   panel muestra el total por vendedor.
+
+   Desde ahí mismo le podés **sacar el acceso** cuando quieras. Cada uno puede
+   cambiar su propia contraseña en la tarjeta *«Mi contraseña»*.
 
 ## Vender
 

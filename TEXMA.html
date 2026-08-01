@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>TEXMA · Planner</title>
 <meta name="theme-color" content="#F3EEE5">
-<meta name="color-scheme" content="light dark">
+<meta name="color-scheme" content="only light">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="favicon.png?v=4" type="image/png">
 <link rel="apple-touch-icon" href="icon-192.png?v=4">
@@ -14,9 +14,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,500;1,600;1,700&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
 :root{
-  /* le avisa al celular que la app maneja su propio tema:
-     sin esto, el "modo oscuro forzado" de Chrome Android oscurece todo igual */
-  color-scheme:light;
+  /* «only light» le prohíbe al celular oscurecer la app por su cuenta.
+     Sin esto, el modo oscuro forzado de Chrome/Samsung Internet la oscurece igual. */
+  color-scheme:only light;
   --paper:#FAF7F1; --linen:#F3EEE5; --ink:#2B2622; --ink2:#75695C; --line:#E4DCCD;
   --r:22px; --nav-h:66px;
   --serif:'Cormorant Garamond',Georgia,serif;
@@ -32,7 +32,7 @@ body[data-pal="clay"]  {--tint:#EFE1D4;--mid:#C79A76;--deep:#9C6F4B;--aink:#6C4A
 body[data-pal="rosa"]  {--tint:#FBD9E6;--mid:#F27BA6;--deep:#EC1968;--aink:#A61048}
 
 /* ---------- modo oscuro ---------- */
-html.dark{color-scheme:dark}
+html.dark{color-scheme:only dark}
 body.dark{--paper:#26221D;--linen:#1C1916;--ink:#EDE7DD;--ink2:#A89C8D;--line:#3B352C}
 body.dark::after{opacity:.09}
 body.dark #nav{background:rgba(28,25,22,.92)}
@@ -60,11 +60,12 @@ body::after{
   padding:calc(12px + env(safe-area-inset-top)) 2px 8px;
 }
 #top .av{
-  width:44px;height:44px;min-width:44px;border-radius:99px;display:grid;place-items:center;
-  background:linear-gradient(140deg,var(--deep),var(--mid));color:#FFF;
-  font-family:var(--serif);font-style:italic;font-weight:700;font-size:21px;
+  width:44px;height:44px;min-width:44px;border-radius:99px;display:grid;place-items:center;border:none;
+  background:linear-gradient(140deg,var(--deep),var(--mid));color:#FFF;cursor:pointer;
+  font-family:var(--serif);font-style:italic;font-weight:700;font-size:21px;line-height:1;
   box-shadow:0 4px 12px rgba(43,38,34,.16);
 }
+#top .av:active{scale:.94}
 #top .hgt{flex:1;min-width:0;text-align:center}
 #top .brand{font-family:var(--serif);font-style:italic;font-weight:700;font-size:23px;letter-spacing:.5px;line-height:1.1}
 #top .brand em{color:var(--deep);font-style:italic}
@@ -509,14 +510,14 @@ body.dark .stt span.al{background:#4A3520;border-color:#6B4E2C;color:#E0B183}
 
 <div id="app">
   <header id="top">
-    <div class="av" id="avatar">♥</div>
+    <button class="tbtn" id="menuBtn" aria-label="Todas las secciones">
+      <svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    </button>
     <div class="hgt">
       <div class="brand"><em>T</em>EXMA</div>
       <div id="topdate"></div>
     </div>
-    <button class="tbtn" id="menuBtn" aria-label="Todas las secciones">
-      <svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
-    </button>
+    <button class="av" id="avatar" aria-label="Ajustes">♥</button>
   </header>
   <main id="view"></main>
 </div>
@@ -676,7 +677,7 @@ function applyTheme(){
     st.setProperty('--aink',hslHex(h,Math.min(s,60),32));
   }
   document.querySelector('meta[name="theme-color"]').setAttribute('content',dark?'#1C1916':'#F3EEE5');
-  document.querySelector('meta[name="color-scheme"]').setAttribute('content',dark?'dark':'light');
+  document.querySelector('meta[name="color-scheme"]').setAttribute('content',dark?'only dark':'only light');
 }
 
 /* ---------- permiso de notificaciones ---------- */
@@ -841,6 +842,7 @@ window.addEventListener('popstate',e=>{
 });
 $$('#nav button').forEach(b=>b.addEventListener('click',()=>go(b.dataset.v)));
 $('#menuBtn').addEventListener('click',()=>{ if(sheetOpen) attemptCloseSheet(()=>masSheet()); else masSheet(); });
+$('#avatar').addEventListener('click',()=>go('ajustes'));
 $('#fab').addEventListener('click',()=>{ const f=VIEWS[cur].fab; if(f) f(); });
 
 const MICONS={
@@ -3256,8 +3258,15 @@ if(g0){
   g0.from('#fab',{scale:0,duration:.5,ease:'back.out(2)',delay:.3});
 }
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
+  /* si se publica una versión nueva, recargar sola una vez
+     (solo si ya había un service worker: en la primera visita no hace falta) */
+  const habiaSW=!!navigator.serviceWorker.controller;
+  let recargando=false;
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{
+    if(!habiaSW||recargando) return; recargando=true; location.reload();
+  });
   navigator.serviceWorker.register('sw.js')
-    .then(r=>{ swReg=r; return navigator.serviceWorker.ready; })
+    .then(r=>{ swReg=r; r.update().catch(()=>{}); return navigator.serviceWorker.ready; })
     .then(r=>{ swReg=r||swReg; startNotifLoop(); })
     .catch(()=>startNotifLoop());
 } else startNotifLoop();
