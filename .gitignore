@@ -3,3 +3,6 @@ logo-original.png
 1.png
 2.jpg
 3.jpg
+
+# cache de wrangler (no va al repo)
+server/.wrangler/
