@@ -1,5 +1,5 @@
 /* TEXMA · service worker · cache-first para funcionar 100% offline */
-const CACHE = 'texma-v10';
+const CACHE = 'texma-v11';
 const PRECACHE = [
   './',
   './index.html',
@@ -12,6 +12,7 @@ const PRECACHE = [
   './onb1.jpg',
   './onb2.jpg',
   './onb3.jpg',
+  './notif-texma.mp3',
   'https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js',
   'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,500;1,600;1,700&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap'
 ];
@@ -32,13 +33,46 @@ self.addEventListener('activate', e => {
   );
 });
 
+/* ---------- avisos en segundo plano (Web Push) ----------
+   El servidor manda un JSON { title, body, tag, url }. Esto aguanta con la
+   app cerrada. El SONIDO lo pone el celular (canal de notificaciones del
+   navegador): un sonido propio de TEXMA con la app cerrada solo se puede
+   en la app nativa (APK). Ver server/NOTIFICACIONES.md */
+self.addEventListener('push', e => {
+  let d = {};
+  try { d = e.data ? e.data.json() : {}; } catch (err) { d = { body: e.data && e.data.text() }; }
+  const title = d.title || 'TEXMA';
+  e.waitUntil(
+    self.registration.showNotification(title, {
+      body: d.body || '',
+      icon: './icon-192.png',
+      badge: './icon-192.png',
+      tag: d.tag || 'texma',
+      renotify: true,
+      silent: false,
+      vibrate: [90, 50, 90],
+      requireInteraction: !!d.sticky,
+      data: { url: d.url || './' }
+    })
+  );
+});
+
+/* si el navegador rota la suscripción, avisar a las pestañas abiertas */
+self.addEventListener('pushsubscriptionchange', e => {
+  e.waitUntil(
+    self.clients.matchAll({ includeUncontrolled: true })
+      .then(cs => cs.forEach(c => c.postMessage({ type: 'push-resubscribe' })))
+  );
+});
+
 /* tocar el aviso abre (o enfoca) TEXMA */
 self.addEventListener('notificationclick', e => {
   e.notification.close();
+  const url = (e.notification.data && e.notification.data.url) || './';
   e.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(cs => {
       for (const c of cs) if ('focus' in c) return c.focus();
-      if (self.clients.openWindow) return self.clients.openWindow('./');
+      if (self.clients.openWindow) return self.clients.openWindow(url);
     })
   );
 });

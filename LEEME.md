@@ -1,4 +1,4 @@
-# TEXMA · Planner personal · V1.1.5
+# TEXMA · Planner personal · V1.2.0
 
 Planner mobile-first, sin cuentas ni internet obligatorio. Todos los datos se
 guardan en el dispositivo (localStorage) y sobreviven al cerrar y volver a abrir.
@@ -46,26 +46,47 @@ También se puede mandar `TEXMA.html` suelto por WhatsApp y abrirlo con Chrome.
   inventario, alertas de reposición y movimientos de entrada/venta que pueden
   ir directo a Finanzas.
 - **Notas, Agradecimientos, Pasatiempos, Medicamentos.**
-- **Ajustes**: nombre, tema **Claro / Oscuro** (arranca siempre en claro y no
-  depende de cómo esté el celular), 7 paletas + color libre, secciones on/off,
-  notificaciones con prueba y diagnóstico, exportar/importar copia, borrar todo.
+- **Perfil y ajustes**: tu **foto y tu nombre** (TEXMA te saluda con eso),
+  **color de la cabecera**, 7 paletas + color libre, secciones on/off,
+  notificaciones con sonido, prueba y diagnóstico, exportar/importar copia,
+  borrar todo.
+
+## Primera vez
+
+3 pantallas de presentación (se pasan deslizando o con *Siguiente*), en la
+última un **botón deslizable** para entrar, y después un formulario para cargar
+**foto de perfil, nombre y color de cabecera**. Todo se puede cambiar más tarde
+desde Perfil.
+
+## Aspecto
+
+TEXMA es **siempre clara**. No hay modo oscuro: `color-scheme:only light` +
+`forced-color-adjust:none` le prohíben al celular oscurecerla por su cuenta.
+
+Arriba hay un **banner de color** (naranja por defecto) con la foto, el saludo
+y la **campanita**, que muestra todo lo que TEXMA te va a avisar hoy.
 
 ## Navegación
 
-Barra oscura flotante con 4 pestañas — **Hoy · Agenda · Costura · Finanzas** — y
-el botón **+** en el centro, que agrega lo que corresponda a la sección donde
-estés. El resto de las secciones se abren desde el **menú ☰** arriba a la derecha
-(tarjetas de colores) o desde los **accesos rápidos** de la pantalla Hoy.
+Barra oscura flotante: **Hoy · Agenda · Finanzas · Costura**, y el **+ del
+centro** abre *todas las secciones* como píldoras, una abajo de la otra.
+
+Para **agregar** hay un **+ flotante abajo a la derecha** en cada sección, que
+carga lo que corresponda a esa pantalla.
 
 ## Notificaciones
 
-Se muestran a través del service worker. Donde el navegador soporta
-`TimestampTrigger` (Chrome en Android) quedan **programadas de verdad** y suenan
-con la app cerrada. Donde no, avisan mientras la app está viva y hacen **puesta
-al día** al abrirla (avisos de hasta 3 horas atrás).
+Con la app abierta suenan a la hora exacta con el **sonido de TEXMA**
+(`notif-texma.mp3`, elegible en Perfil: TEXMA / del celu / mudo).
 
-Ajustes → *Probar un aviso ahora* dice el estado exacto: permiso, si está
-instalada y si el celu soporta alarmas en segundo plano.
+Para que avisen **con la app cerrada** hay que prender el **Web Push**: está
+todo listo en el código (`sw.js` + el bloque `AVISOS EN SEGUNDO PLANO` de
+`TEXMA.html`) y el backend en [`server/push/`](server/push/).
+Guía paso a paso: [`server/NOTIFICACIONES.md`](server/NOTIFICACIONES.md).
+
+⚠ Con la app cerrada el **sonido lo pone el celular** (canal de notificaciones
+del navegador): un sonido propio de TEXMA ahí solo se puede con la app nativa
+(APK con Capacitor). Está explicado en la misma guía.
 
 ## Copias de seguridad
 
