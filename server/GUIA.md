@@ -97,7 +97,29 @@ No se ve mientras lo pegás, es normal.
 npx wrangler deploy
 ```
 
-Al final te dice:
+### La primera vez te pide elegir un subdominio
+
+Vas a ver:
+
+```
+? What would you like your workers.dev subdomain to be?
+  It will be accessible at https://<subdomain>.workers.dev
+```
+
+**Solo minúsculas, números y guiones.** Si ponés `Maxing` con mayúscula te
+contesta `Maxing is invalid, please choose another subdomain`. Escribí `maxing`.
+
+Si igual lo rechaza, es que ya lo tomó otra cuenta (es único en todo Cloudflare).
+Probá `maxing-agent`, `maxingagent`, etc.
+
+Dos cosas antes de elegir:
+
+- Es **para toda tu cuenta**, no para este proyecto: cualquier Worker que
+  publiques después va a colgar de ahí. Elegí algo genérico.
+- Cambiarlo más adelante **rompe todas las URLs viejas**, incluidos los links de
+  descarga que ya hayas mandado. Elegilo una vez y no lo toques.
+
+### Al final te dice:
 
 ```
 Published texma-lic
@@ -173,6 +195,7 @@ y el link muere.
 | `KV namespace not found` | El `id` del paso 3 no quedó bien pegado en `wrangler.toml`. |
 | El panel dice "No hay ningún servidor" | O la URL está mal escrita, o todavía no hiciste el paso 6. Probá la URL con `/admin/estado` en el navegador. |
 | `{"setup":false}` cuando esperabas `true` | Ya creaste la cuenta. Andá al panel y entrá con tu usuario. |
+| `X is invalid, please choose another subdomain` | El subdominio tiene mayúsculas o caracteres raros, o ya está tomado. Solo minúsculas, números y guiones. |
 
 ---
 

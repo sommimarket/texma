@@ -9,4 +9,4 @@ APP_URL = "https://sommimarket.github.io/texma/"
 # KV con las licencias — crear con:  npx wrangler kv namespace create LIC
 [[kv_namespaces]]
 binding = "LIC"
-id = "PEGAR_ID_DEL_KV"
+id = "0e86a364edee4b5192fa52e3f9b29331"
