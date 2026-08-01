@@ -2,6 +2,33 @@
 
 Explicado desde cero, sin dar nada por sabido.
 
+---
+
+## ✅ ESTADO ACTUAL — pasos 1 a 7 ya hechos
+
+El servidor **ya está publicado y probado**:
+
+- **URL del Worker**: `https://texma-lic.texma.workers.dev`
+- KV `LIC` creado y conectado (`0e86a364edee4b5192fa52e3f9b29331`).
+- Clave privada de firma cargada como secreto `LIC_PRIV`. La copia local se borró:
+  vive solo en Cloudflare.
+- Clave pública ya pegada en `TEXMA.html`.
+- Probado de punta a punta: crear cuenta, generar venta, link que se quema al
+  primer uso, activación atada al celular, rechazo del segundo celular, licencia
+  firmada y verificada, y licencia adulterada rechazada. Los datos de prueba se
+  borraron.
+
+**Lo único que falta hacer vos:**
+
+1. Abrir `server/panel.html`, pegar `https://texma-lic.texma.workers.dev`,
+   **Conectar**, y crear tu usuario y contraseña (paso 8 de abajo).
+2. Cuando quieras empezar a cobrar, poner `LIC_ON=true` en `TEXMA.html` y
+   pushear (paso 7). **Mientras siga en `false`, la app abre sin pedir nada.**
+
+El resto de la guía queda como referencia, por si algún día hay que rehacerlo.
+
+---
+
 ## Antes que nada: por qué el panel no funciona todavía
 
 El panel (`panel.html`) es solo una pantalla. **No guarda nada.** Todos los datos
@@ -90,6 +117,11 @@ npx wrangler secret put LIC_PRIV
 
 Te pide el valor. **Pegá el JSON largo del punto 2 del paso anterior** y Enter.
 No se ve mientras lo pegás, es normal.
+
+⚠️ Si en vez de pegarlo a mano lo pasás desde un archivo, **no uses PowerShell**
+(`Get-Content archivo | wrangler secret put`): le mete un BOM al principio y el
+Worker no puede leer el JSON. Usá `cmd`/bash con `type archivo | ...` o pegalo a
+mano.
 
 ## Paso 6 · Publicar
 
@@ -195,7 +227,6 @@ y el link muere.
 | `KV namespace not found` | El `id` del paso 3 no quedó bien pegado en `wrangler.toml`. |
 | El panel dice "No hay ningún servidor" | O la URL está mal escrita, o todavía no hiciste el paso 6. Probá la URL con `/admin/estado` en el navegador. |
 | `{"setup":false}` cuando esperabas `true` | Ya creaste la cuenta. Andá al panel y entrá con tu usuario. |
-| `X is invalid, please choose another subdomain` | El subdominio tiene mayúsculas o caracteres raros, o ya está tomado. Solo minúsculas, números y guiones. |
 
 ---
 

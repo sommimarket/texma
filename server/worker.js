@@ -43,8 +43,9 @@ const unb64u = s => Uint8Array.from(
 /* ---------- contraseñas ---------- */
 async function derive(pass, salt) {
   const k = await crypto.subtle.importKey('raw', enc.encode(pass), 'PBKDF2', false, ['deriveBits']);
+  /* 100.000 es el máximo que soporta Workers; pedir más tira NotSupportedError */
   const bits = await crypto.subtle.deriveBits(
-    { name: 'PBKDF2', salt, iterations: 120000, hash: 'SHA-256' }, k, 256
+    { name: 'PBKDF2', salt, iterations: 100000, hash: 'SHA-256' }, k, 256
   );
   return b64u(bits);
 }
@@ -94,8 +95,10 @@ async function session(env, req) {
 
 /* ---------- licencias ---------- */
 async function signToken(env, payload) {
+  /* .replace(): al cargar el secreto desde un archivo se le puede colar un BOM */
+  const jwk = JSON.parse(String(env.LIC_PRIV).replace(/^﻿/, '').trim());
   const key = await crypto.subtle.importKey(
-    'jwk', JSON.parse(env.LIC_PRIV), { name: 'ECDSA', namedCurve: 'P-256' }, false, ['sign']
+    'jwk', jwk, { name: 'ECDSA', namedCurve: 'P-256' }, false, ['sign']
   );
   const body = b64u(enc.encode(JSON.stringify(payload)));
   const sig = await crypto.subtle.sign({ name: 'ECDSA', hash: 'SHA-256' }, key, enc.encode(body));

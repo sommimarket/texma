@@ -3176,9 +3176,10 @@ function showOnb(){
    Para activarlo: poné LIC_ON=true, pegá la clave pública (server/keygen.mjs)
    y la URL del Worker.
 ============================================================ */
-const LIC_ON=false;                       /* ← poné true cuando el Worker esté publicado */
-const LIC_API='https://texma-lic.TU-CUENTA.workers.dev';
-const LIC_PUB={kty:'EC',crv:'P-256',x:'PEGAR_X',y:'PEGAR_Y'};   /* clave PÚBLICA — sale de keygen.mjs */
+const LIC_ON=false;                       /* ← poné true para empezar a pedir código */
+const LIC_API='https://texma-lic.texma.workers.dev';
+/* clave PÚBLICA de verificación · la privada vive solo como secreto del Worker */
+const LIC_PUB={kty:'EC',crv:'P-256',x:'nbx_HFNYdj08pC-3NvFnww1Tk_xDgAOssXK4hD98vxw',y:'cSi1eaLa8s2MIhPuywcLQtflNYlb7AGCCxVq8S289sI'};
 const DEVK='texma_dev', LICK='texma_lic';
 
 function deviceId(){
