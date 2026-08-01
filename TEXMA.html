@@ -658,10 +658,20 @@ h1.vt{font-family:var(--serif);font-style:italic;font-weight:600;font-size:30px;
 <script src="gsap.min.js"></script>
 <script>
 /* ============================================================
-   TEXMA · planner personal · v1.2.0
+   TEXMA · planner personal
    Datos: localStorage 'texma' (importa copias de 'jiom')
 ============================================================ */
 'use strict';
+
+/* ---------- LA VERSIÓN ----------
+   Este es el ÚNICO lugar donde se toca el número de versión.
+   De acá salen solos:
+     · el pie de Ajustes («Hecho con Amor — M.E.G · V…»)
+     · el aviso de «hay una TEXMA nueva»
+     · package.json y el versionName/versionCode del APK
+       (los sincroniza scripts/build-web.mjs en cada npm run sync)
+   Al sacar un parche: cambiar el número acá y nada más.        */
+const APP_VER='1.2.1';
 
 /* ---------- utilidades ---------- */
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
@@ -827,7 +837,7 @@ function dlg(o,cb){
     ${o.msg?`<div class="dm">${esc(o.msg)}</div>`:''}
     ${o.input!==undefined?`<div class="din"><input id="dlgIn" value="${esc(o.input||'')}" placeholder="${esc(o.ph||'')}" maxlength="24"></div>`:''}
     <div class="dbtns">
-      <button data-r="0">${esc(o.cancelTxt||'Cancelar')}</button>
+      ${o.oneBtn?'':`<button data-r="0">${esc(o.cancelTxt||'Cancelar')}</button>`}
       <button data-r="1" class="${o.danger?'red':'em'}">${esc(o.okTxt||'OK')}</button>
     </div></div>`;
   document.body.appendChild(w);
@@ -3090,11 +3100,16 @@ VIEWS.ajustes={
       </div>
       <div class="about vc">
         <div class="a1">TEXMA — Planner personal</div>
-        <div class="a2">Hecho con Amor — M.E.G · V1.2.0 ♥</div>
+        <div class="a2" id="verB" style="cursor:pointer">Hecho con Amor — M.E.G · V${APP_VER} ♥</div>
         <div class="a3">Copyright © 2026 — Maxing Agent</div>
       </div>`;
     const nameI=V.querySelector('#setName');
     nameI.addEventListener('change',()=>{ S.settings.name=nameI.value.trim(); save(); paintTop(); go('ajustes'); toast('Guardado ♥'); });
+    /* tocar el número de versión busca actualizaciones a mano */
+    V.querySelector('#verB')?.addEventListener('click',()=>{
+      if(!SUPA_URL||!SUPA_ANON){ toast(`TEXMA V${APP_VER}`); return; }
+      toast('Buscando…'); chequearUpdate(true);
+    });
     const setFile=V.querySelector('#setFile');
     V.querySelector('#setPic').addEventListener('click',()=>setFile.click());
     setFile.addEventListener('change',()=>{
@@ -3701,6 +3716,98 @@ function showProfileSetup(){
 }
 
 /* ============================================================
+   AVISO DE ACTUALIZACIÓN
+   ------------------------------------------------------------
+   Como TEXMA se reparte por APK y no por una tienda, nadie se entera
+   cuando sale una mejora. Solución: al abrir la app se le pregunta a
+   Supabase qué versión es la última publicada (tabla `apps`, columna
+   `version`). Si la de la base es mayor que APP_VER, sale el cartel.
+
+   Es una sola consulta de LECTURA con la anon key, que es pública a
+   propósito: la política de RLS de la tabla `apps` deja leer nada más
+   que id/nombre/version/url_descarga. La service_role key NUNCA va acá.
+
+   Para encenderlo hay que pegar abajo la URL del proyecto y la anon key
+   (Supabase → Project Settings → API). Con los campos vacíos la función
+   no hace nada y la app sigue andando igual. Ver server/SUPABASE.md.
+============================================================ */
+const SUPA_URL='';    /* ← ej: https://xxxxxxxx.supabase.co  (sin barra al final) */
+const SUPA_ANON='';   /* ← anon / public key */
+const APP_ID='texma';
+const UPDK='texma_upd';
+
+/* compara '1.2.10' con '1.2.9' de verdad (no como texto): 1 / 0 / -1 */
+function verCmp(a,b){
+  const pa=String(a).split('.').map(n=>parseInt(n,10)||0);
+  const pb=String(b).split('.').map(n=>parseInt(n,10)||0);
+  for(let i=0;i<Math.max(pa.length,pb.length);i++){
+    const x=pa[i]||0, y=pb[i]||0;
+    if(x!==y) return x>y?1:-1;
+  }
+  return 0;
+}
+
+function updEstado(){
+  try{ return JSON.parse(localStorage.getItem(UPDK)||'{}'); }catch(e){ return {}; }
+}
+function updGuardar(st){
+  try{ localStorage.setItem(UPDK,JSON.stringify(st)); }catch(e){}
+}
+
+async function chequearUpdate(forzar){
+  if(!SUPA_URL||!SUPA_ANON) return;
+  const st=updEstado();
+  /* se le pregunta al servidor cada 6 h como mucho: no tiene sentido
+     gastar datos en cada apertura, y así el free tier queda intacto */
+  const FRESCO=6*60*60*1000;
+  if(forzar||!(st.ts&&Date.now()-st.ts<FRESCO)){
+    try{
+      const r=await fetch(
+        `${SUPA_URL}/rest/v1/apps?id=eq.${encodeURIComponent(APP_ID)}&select=version,url_descarga`,
+        {headers:{apikey:SUPA_ANON,authorization:'Bearer '+SUPA_ANON}});
+      if(!r.ok) return;
+      const fila=(await r.json())[0];
+      if(!fila||!fila.version) return;
+      /* si en la base cambió el número, se vuelve a avisar aunque
+         antes hubiera tocado «Ahora no» */
+      if(fila.version!==st.ver) st.visto='';
+      st.ver=fila.version;
+      st.url=fila.url_descarga||'';
+      st.ts=Date.now();
+      updGuardar(st);
+    }catch(e){ return; }   /* sin internet: ni se entera, no molesta */
+  }
+  if(!st.ver||verCmp(st.ver,APP_VER)<=0){ if(forzar) toast('Ya tenés la última ✓'); return; }
+  if(st.visto===st.ver&&!forzar) return;   /* ya lo descartó para esta versión */
+  avisoUpdate(st);
+}
+
+function avisoUpdate(st){
+  const hayLink=!!st.url;
+  dlg({
+    title:'Hay una TEXMA nueva ♥',
+    msg:`Tenés la V${APP_VER} y ya salió la V${st.ver}. `+(hayLink
+      ?'Tocá Descargar, abrí el archivo que se baja y listo: tus datos quedan como están.'
+      :'Escribinos y te pasamos la actualización.'),
+    okTxt:hayLink?'Descargar':'Entendido',
+    cancelTxt:'Ahora no',
+    oneBtn:!hayLink,
+  },ok=>{
+    st.visto=st.ver; updGuardar(st);
+    if(ok&&hayLink) abrirAfuera(st.url);
+  });
+}
+
+/* el link de descarga tiene que salir al navegador del celu, no
+   quedarse adentro de la WebView del APK */
+function abrirAfuera(url){
+  try{
+    const w=window.open(url,'_blank','noopener');
+    if(!w) location.href=url;
+  }catch(e){ location.href=url; }
+}
+
+/* ============================================================
    LICENCIA
    ------------------------------------------------------------
    Cómo funciona:
@@ -3826,7 +3933,14 @@ paintTop();
 setInterval(paintTop,60000);
 go('hoy');
 try{ history.replaceState({v:'hoy'},''); }catch(e){}
-licGate().then(ok=>{ if(!ok) return; if(!S.settings.onboarded) showOnb(); else afterOnb(); });
+licGate().then(ok=>{
+  if(!ok) return;
+  if(!S.settings.onboarded){ showOnb(); return; }
+  afterOnb();
+  /* el cartel de versión nueva espera un segundo: así no le pisa
+     el saludo ni la pantalla de perfil a quien recién entra */
+  if(S.settings.profiled) setTimeout(()=>chequearUpdate(),1200);
+});
 const g0=G();
 /* la entrada solo se anima si la app está a la vista: si el celu la tiene
    en segundo plano, el navegador frena los frames y los botones quedarían

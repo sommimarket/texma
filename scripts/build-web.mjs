@@ -53,6 +53,51 @@ await writeFile(
   ),
 );
 
+/* ============================================================
+   LA VERSIÓN, DE UN SOLO LUGAR
+   ------------------------------------------------------------
+   El número vive en TEXMA.html/index.html como `const APP_VER='x.y.z'`.
+   Desde ahí se copia solo a package.json y al build.gradle del APK,
+   así nunca quedan tres números distintos dando vueltas.
+============================================================ */
+const verEnHtml = html.match(/const\s+APP_VER\s*=\s*'([\d.]+)'/);
+if (!verEnHtml) {
+  console.log('⚠ no encontré `const APP_VER` en index.html: no sincronizo versiones');
+} else {
+  const VER = verEnHtml[1];
+  const [ma = 0, mi = 0, pa = 0] = VER.split('.').map(Number);
+  /* 1.2.1 → 10201 · siempre crece, que es lo único que Android exige */
+  const CODE = ma * 10000 + mi * 100 + pa;
+
+  const pkgPath = join(raiz, 'package.json');
+  const pkg = JSON.parse(await readFile(pkgPath, 'utf8'));
+  if (pkg.version !== VER) {
+    pkg.version = VER;
+    await writeFile(pkgPath, JSON.stringify(pkg, null, 2) + '\n');
+  }
+
+  const gradlePath = join(raiz, 'android', 'app', 'build.gradle');
+  if (existsSync(gradlePath)) {
+    const g0 = await readFile(gradlePath, 'utf8');
+    const g1 = g0
+      .replace(/versionCode\s+\d+/, `versionCode ${CODE}`)
+      .replace(/versionName\s+"[^"]*"/, `versionName "${VER}"`);
+    if (g1 !== g0) await writeFile(gradlePath, g1);
+  }
+
+  console.log(`✓ versión ${VER} (versionCode ${CODE}) → package.json + build.gradle`);
+}
+
+/* index.html es una copia de TEXMA.html: si no coinciden, el APK sale viejo */
+const fuente = join(raiz, 'TEXMA.html');
+if (existsSync(fuente)) {
+  const src = await readFile(fuente, 'utf8');
+  if (src !== await readFile(join(raiz, 'index.html'), 'utf8')) {
+    console.log('⚠ TEXMA.html e index.html NO son iguales.');
+    console.log('  Se empaquetó index.html. Si editaste TEXMA.html: cp TEXMA.html index.html');
+  }
+}
+
 console.log(`✓ www/ armado con ${ARCHIVOS.length - faltan.length} archivos`);
 if (faltan.length) {
   console.log(`⚠ faltan (no es fatal): ${faltan.join(', ')}`);

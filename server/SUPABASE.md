@@ -91,7 +91,60 @@ select cron.schedule('maxing-vivo', '0 9 * * *',
   $$ delete from devices where ultima_vez < now() - interval '180 days'; $$);
 ```
 
-## 3. Las licencias
+## 3. El aviso de «hay una TEXMA nueva»
+
+Como la app se reparte por APK y no por una tienda, nadie se entera cuando sale
+una mejora. La app le pregunta a esta tabla qué versión es la última y, si la
+instalada es menor, muestra un cartel al abrirse.
+
+### 3.1 Agregar el link de descarga y abrir la lectura
+
+```sql
+-- dónde se baja el APK nuevo (GitHub Releases, Drive, lo que uses)
+alter table apps add column if not exists url_descarga text;
+
+-- la app lee con la anon key: hace falta una política de SOLO LECTURA.
+-- `licencias` y `devices` siguen cerradas: ahí no se toca nada.
+drop policy if exists "apps lectura publica" on apps;
+create policy "apps lectura publica"
+  on apps for select
+  to anon
+  using (activa);
+```
+
+⚠ Esto deja `apps` (nombre, versión, precio, link) legible por cualquiera que
+tenga la anon key — que es pública por diseño. No pongas datos privados en esa
+tabla. `licencias` y `devices` quedan sin políticas, o sea inaccesibles.
+
+### 3.2 Publicar una versión
+
+Cada vez que saques un parche, después de compilar y subir el APK:
+
+```sql
+update apps
+   set version = '1.2.1',
+       url_descarga = 'https://…/TEXMA-1.2.1.apk'
+ where id = 'texma';
+```
+
+### 3.3 Enchufar la app
+
+En `TEXMA.html`, arriba del bloque `LICENCIA`:
+
+```js
+const SUPA_URL='https://xxxxxxxx.supabase.co';   /* sin barra al final */
+const SUPA_ANON='eyJhbGciOi…';                   /* anon / public key */
+```
+
+Con esos dos campos vacíos la app no consulta nada y funciona igual. La
+`service_role key` **nunca** va acá: es un HTML que se reparte.
+
+La app pregunta una vez cada 6 h como mucho y se guarda la respuesta, así que
+no gasta datos ni cuota. Si el usuario toca «Ahora no», no se le vuelve a
+insistir hasta que cambie el número en la base. Tocar el número de versión en
+Ajustes fuerza la consulta al toque.
+
+## 4. Las licencias
 
 **Hoy funcionan con el Cloudflare Worker** (`server/worker.js`), publicado y
 probado. **No lo toques todavía**: anda, es gratis y es rápido.
@@ -110,7 +163,7 @@ no se entera de nada: sigue verificando offline con la misma `LIC_PUB`. La
 ventaja de mudarlo es tener **todas las apps y todas las ventas en una tabla**
 que podés ordenar, filtrar y exportar.
 
-## 4. El panel de dueño
+## 5. El panel de dueño
 
 `server/panel.html` ya existe para TEXMA. La versión multi-app es la misma
 pantalla con un selector arriba:
@@ -126,7 +179,7 @@ simple: pantalla protegida con una contraseña y todo por la Edge Function.
 ⚠ La `service_role key` **nunca** va en un HTML que se publica: quien la tenga
 puede leer y borrar toda la base.
 
-## 5. Orden recomendado
+## 6. Orden recomendado
 
 1. Crear la organización y el proyecto → correr el SQL del punto 2. *(10 min)*
 2. Seguir vendiendo con el Worker como está.
