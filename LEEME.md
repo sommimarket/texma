@@ -1,4 +1,4 @@
-# TEXMA · Planner personal · V1.2.0
+# TEXMA · Planner personal · V1.3.0
 
 Planner mobile-first, sin cuentas ni internet obligatorio. Todos los datos se
 guardan en el dispositivo (localStorage) y sobreviven al cerrar y volver a abrir.
@@ -46,6 +46,11 @@ no se edita a mano y no va al repo.
   compra con precio se registra sola como gasto.
 - **Finanzas**: balance mensual, y al tocar **Ingresos** o **Gastos** se despliega
   el detalle: por categoría y uno por uno. Pagos recurrentes.
+- **Inversiones**: metas visuales con **foto propia** — la casa, el auto, un
+  viaje. Cada meta lleva monto objetivo, fecha, aportes uno por uno y barra de
+  avance; arriba de la sección va un **banner de imagen** con el título que
+  quieras. Es una cuenta **aparte de Finanzas**: los aportes no tocan el
+  balance del mes ni aparecen como movimientos.
 - **Entrenamiento**: **racha estilo Duolingo** (días seguidos, récord, logros),
   calendario del mes donde se anota qué se hizo cada día, y rutinas por día.
 - **Ciclo menstrual**: registro informativo — día del ciclo, próximo período,
@@ -63,9 +68,12 @@ no se edita a mano y no va al repo.
 ## Primera vez
 
 3 pantallas de presentación (se pasan deslizando o con *Siguiente*), en la
-última un **botón deslizable** para entrar, y después un formulario para cargar
-**foto de perfil, nombre y color de cabecera**. Todo se puede cambiar más tarde
-desde Perfil.
+última un **botón deslizable** para entrar. Esas 3 pantallas **se ven siempre**,
+con licencia o sin ella: así quien la instala primero ve de qué se trata.
+
+Justo después aparece el **muro de licencia** (ver más abajo). Con el código
+puesto sigue el formulario para cargar **foto de perfil, nombre y color de
+cabecera**. Todo se puede cambiar más tarde desde Perfil.
 
 ## Aspecto
 
@@ -109,8 +117,34 @@ Se restaura con "Importar copia" (acepta copias viejas de TEXMA y del viejo JIOM
 
 ## Venta / licencias
 
-Hoy: Cloudflare Worker, ver [`server/README.md`](server/README.md). Mientras
-`LIC_ON = false` en `TEXMA.html`, la app funciona sin pedir código.
+**Desde la V1.3.0 el muro está PRENDIDO** (`LIC_ON = true` en `TEXMA.html`).
+Cloudflare Worker, ver [`server/README.md`](server/README.md).
+
+Orden del arranque: onboarding → muro → app. Sin código válido en el
+`localStorage` la app **no ejecuta nada más**: no dibuja ninguna vista, no
+programa avisos y **no registra el service worker** (o sea, tampoco sigue
+recibiendo actualizaciones sola).
+
+En la pantalla de bloqueo están los contactos para pedir el código
+(+54 387 576-0091, +54 387 614-5611, texma.ok@gmail.com) y el campo para
+pegarlo si ya lo compraron.
+
+### Código maestro (nuestro)
+
+Hay una **puerta de atrás** para probar en nuestros celulares sin gastar un
+código de venta: se escribe en el mismo campo y entra directo, sin tocar el
+servidor. En el código fuente vive el **SHA-256** de la frase, no la frase.
+Para cambiarla:
+
+```
+node scripts/codigo-maestro.mjs "MI FRASE NUEVA"
+```
+
+y se pega el `const LIC_MASTER_SHA=...` que imprime, en `TEXMA.html`.
+
+> Esto frena la copia casual, **no a alguien que sepa programar**: el chequeo
+> corre en el celular, así que quien abra el HTML (o descomprima el APK) puede
+> sacar el muro igual. Es la misma advertencia de `server/README.md`.
 
 Casa futura de todas las apps (catálogo, licencias y panel multi-app en un solo
 Supabase): [`server/SUPABASE.md`](server/SUPABASE.md).

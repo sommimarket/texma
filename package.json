@@ -1,6 +1,6 @@
 {
   "name": "texma",
-  "version": "1.2.2",
+  "version": "1.3.0",
   "private": true,
   "description": "TEXMA · Planner personal — PWA + APK (Capacitor)",
   "scripts": {

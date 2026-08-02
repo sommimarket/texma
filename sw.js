@@ -1,5 +1,5 @@
 /* TEXMA · service worker · cache-first para funcionar 100% offline */
-const CACHE = 'texma-v13';
+const CACHE = 'texma-v14';
 const PRECACHE = [
   './',
   './index.html',

@@ -4,8 +4,20 @@
 > dar nada por sabido: qué es el Worker, de dónde sale la URL, y qué escribir en
 > la terminal. Este archivo es el resumen técnico.
 
-Todo esto es **opcional**: mientras `LIC_ON = false` en `TEXMA.html`, la app funciona sin pedir nada.
-Cuando quieras empezar a vender, seguí estos pasos.
+**Desde la V1.3.0 esto está PRENDIDO**: `LIC_ON = true` en `TEXMA.html`. Para volver
+a dejar la app libre, poner `false` y subir el `CACHE` de `sw.js`.
+
+El muro aparece **después** del onboarding de 3 pantallas (esas se ven siempre, con
+licencia o sin ella). Sin código válido la app no dibuja ninguna vista, no programa
+avisos y **no registra el service worker** — o sea, tampoco se sigue actualizando sola.
+
+### Código maestro
+
+Hay una puerta de atrás para nuestros celulares: se escribe en el mismo campo del
+muro y entra sin tocar el servidor ni quemar un código de venta. En el fuente vive
+el SHA-256 de la frase (`const LIC_MASTER_SHA`), no la frase. Se cambia con
+`node scripts/codigo-maestro.mjs "MI FRASE NUEVA"`. Vale la misma advertencia de la
+tabla de abajo: quien sepa programar puede sacar el muro igual.
 
 ## Qué protege y qué no
 
@@ -41,13 +53,14 @@ Sube mucho el costo de romperlo, pero tampoco es infinito.
    **No hay ninguna clave que configurar acá.** Tu usuario y contraseña los
    creás vos desde el panel, la primera vez que lo abrís (paso 4).
 
-3. **Prender la licencia en la app**
+3. **Prender la licencia en la app** — *ya está hecho desde la V1.3.0*
    En `TEXMA.html`:
    ```js
    const LIC_ON = true;
-   const LIC_API = 'https://texma-lic.TU-CUENTA.workers.dev';
+   const LIC_API = 'https://texma-lic.texma.workers.dev';
    ```
-   Subí los cambios y **subí el número de `CACHE` en `sw.js`** (`texma-v5` → `texma-v6`),
+   Al tocar cualquiera de las dos cosas: correr `npm run build:web` (copia a
+   `index.html`) y **subir el número de `CACHE` en `sw.js`** (`texma-v13` → `texma-v14`),
    si no el service worker sirve la versión vieja.
 
 4. **Panel — tu usuario y contraseña**

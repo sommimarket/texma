@@ -69,8 +69,8 @@ body::after{
 #top .prow{display:flex;align-items:center;gap:13px;position:relative}
 #top .av{
   position:relative;
-  width:52px;height:52px;min-width:52px;flex:none;aspect-ratio:1;
-  border-radius:99px;border:2.5px solid rgba(255,255,255,.55);
+  width:52px;height:52px;min-width:52px;max-width:52px;min-height:52px;max-height:52px;flex:none;
+  border-radius:50%;border:2.5px solid rgba(255,255,255,.55);
   padding:0;display:grid;place-items:center;cursor:pointer;overflow:hidden;
   background:rgba(255,255,255,.2);color:#FFF;
   font-family:var(--serif);font-style:italic;font-weight:700;font-size:23px;line-height:1;
@@ -79,7 +79,7 @@ body::after{
 /* la foto va ABSOLUTA a propósito: así una imagen vertical no puede
    estirar el círculo (una img en flujo aporta su alto real y el
    min-height:auto de flex/grid le hace caso) */
-#top .av img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+#top .av img{position:absolute;top:0;left:0;right:0;bottom:0;width:100%;height:100%;max-width:100%;max-height:100%;object-fit:cover;display:block}
 #top .av:active{scale:.94}
 #top .hgt{flex:1;min-width:0}
 #top .hsal{font-size:12px;color:rgba(255,255,255,.82);letter-spacing:.2px}
@@ -235,26 +235,37 @@ h1.vt{font-family:var(--serif);font-style:italic;font-weight:600;font-size:30px;
 
 /* ---------- perfil (cabecera de Ajustes) ---------- */
 .profhead{display:flex;flex-direction:column;align-items:center;text-align:center;gap:4px;margin:2px 0 20px}
+/* DOS cajas a propósito:
+   · .profpicw  es la de afuera y NO recorta — de ella cuelga la camarita.
+   · .profpic   es el círculo y recorta TODO lo que le entre (overflow:hidden).
+   Antes eran una sola con overflow:visible (para que se viera la camarita) y
+   una foto vertical se salía del círculo. Con el par, la foto no puede
+   escaparse y la camarita sigue asomando por el borde. */
+.profpicw{
+  position:relative;flex:none;
+  width:104px;height:104px;min-width:104px;max-width:104px;min-height:104px;max-height:104px;
+  cursor:pointer;
+}
 .profpic{
-  position:relative;flex:none;width:104px;height:104px;min-height:104px;aspect-ratio:1;
-  border-radius:99px;overflow:visible;cursor:pointer;
+  position:relative;overflow:hidden;
+  width:104px;height:104px;min-width:104px;max-width:104px;min-height:104px;max-height:104px;
+  border-radius:50%;
   background:linear-gradient(150deg,var(--ban),var(--ban2));display:grid;place-items:center;color:#FFF;
   font-family:var(--serif);font-style:italic;font-weight:700;font-size:42px;
   border:3px solid var(--paper);box-shadow:0 10px 26px rgba(43,38,34,.18);
 }
-/* absoluta, no en flujo: una foto vertical estiraba el círculo hasta
-   deformar la pantalla de bienvenida. Así el recorte lo hace object-fit
-   y el contenedor mide 104×104 pase lo que pase.
-   overflow queda visible porque la camarita cuelga del borde. */
+/* absoluta y con tope de tamaño: una img en flujo aporta su alto real y el
+   min-height:auto de flex/grid le hace caso, y así estiraba el círculo. */
 .profpic img{
-  position:absolute;inset:0;width:100%;height:100%;
-  object-fit:cover;object-position:center;display:block;border-radius:99px;
+  position:absolute;top:0;left:0;right:0;bottom:0;
+  width:100%;height:100%;max-width:100%;max-height:100%;
+  object-fit:cover;object-position:center;display:block;
 }
-.profpic .cam{
+.profpicw .cam{
   position:absolute;right:-2px;bottom:-2px;width:32px;height:32px;border-radius:99px;background:var(--paper);
-  border:1px solid var(--line);display:grid;place-items:center;color:var(--ink);
+  border:1px solid var(--line);display:grid;place-items:center;color:var(--ink);z-index:2;
 }
-.profpic .cam svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.profpicw .cam svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
 .profname{font-family:var(--serif);font-style:italic;font-weight:700;font-size:26px;margin-top:12px}
 .profsub{font-family:var(--mono);font-size:10.5px;letter-spacing:1.2px;text-transform:uppercase;color:var(--ink2)}
 .bancolors{display:flex;flex-wrap:wrap;gap:10px}
@@ -611,17 +622,108 @@ h1.vt{font-family:var(--serif);font-style:italic;font-weight:600;font-size:30px;
 .stt span.ok{background:var(--tint);border-color:var(--mid);color:var(--aink);font-weight:600}
 .stt span.al{background:#F6E2D3;border-color:#DFBB98;color:#8A5A2B;font-weight:600}
 
-/* ---------- pantalla de licencia ---------- */
-#lic{position:fixed;inset:0;z-index:130;background:var(--linen);display:flex;flex-direction:column;
-  align-items:center;justify-content:center;gap:16px;padding:30px 26px calc(30px + env(safe-area-inset-bottom));text-align:center}
-#lic .lgo{font-family:var(--serif);font-style:italic;font-weight:700;font-size:44px;letter-spacing:1px}
+/* ---------- inversiones · banner de imagen + metas ---------- */
+.invhero{
+  position:relative;height:190px;border-radius:26px;overflow:hidden;margin-bottom:16px;cursor:pointer;
+  background:linear-gradient(135deg,var(--deep) 0%,var(--mid) 100%);
+  box-shadow:0 14px 30px rgba(43,38,34,.18);
+}
+/* mismo criterio que la foto de perfil: la imagen va absoluta y con tope,
+   así una foto vertical no puede estirar el banner */
+.invhero img{
+  position:absolute;top:0;left:0;right:0;bottom:0;
+  width:100%;height:100%;max-width:100%;max-height:100%;object-fit:cover;display:block;
+}
+.invhero .sh{position:absolute;inset:0;background:linear-gradient(180deg,rgba(20,16,13,.10) 0%,rgba(20,16,13,0) 38%,rgba(20,16,13,.74) 100%)}
+.invhero .tx{position:absolute;left:20px;right:64px;bottom:16px;color:#FFF;z-index:2}
+.invhero .k{font-family:var(--mono);font-size:9.5px;letter-spacing:1.6px;text-transform:uppercase;opacity:.88}
+.invhero .t{font-family:var(--serif);font-style:italic;font-weight:700;font-size:26px;line-height:1.12;margin-top:4px;text-shadow:0 2px 14px rgba(0,0,0,.35)}
+.invhero .cam{
+  position:absolute;top:13px;right:13px;z-index:3;width:38px;height:38px;border-radius:99px;
+  background:rgba(255,255,255,.92);border:none;display:grid;place-items:center;color:var(--ink);cursor:pointer;
+  box-shadow:0 4px 12px rgba(0,0,0,.2);
+}
+.invhero .cam svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.invhero .vac{
+  position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;color:#FFF;padding:0 30px;gap:6px;
+}
+.invhero .vac b{font-family:var(--serif);font-style:italic;font-size:23px;font-weight:700}
+.invhero .vac span{font-size:12.5px;opacity:.9;line-height:1.45}
+
+.goal{position:relative;border-radius:22px;overflow:hidden;border:1px solid var(--line);background:var(--paper);margin-bottom:12px;cursor:pointer}
+.goal:active{transform:scale(.995)}
+.goal .gph{position:relative;height:134px;background:linear-gradient(135deg,var(--tint),var(--mid))}
+.goal .gph img{
+  position:absolute;top:0;left:0;right:0;bottom:0;
+  width:100%;height:100%;max-width:100%;max-height:100%;object-fit:cover;display:block;
+}
+.goal .gph .sh{position:absolute;inset:0;background:linear-gradient(180deg,rgba(20,16,13,0) 34%,rgba(20,16,13,.68) 100%)}
+.goal .gph .gt{
+  position:absolute;left:15px;right:15px;bottom:11px;color:#FFF;
+  font-family:var(--serif);font-style:italic;font-weight:700;font-size:21px;line-height:1.15;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-shadow:0 2px 12px rgba(0,0,0,.4);
+}
+.goal .gph .gp{
+  position:absolute;top:11px;right:11px;font-family:var(--mono);font-size:10px;letter-spacing:.6px;
+  background:rgba(255,255,255,.93);color:var(--aink);padding:4px 10px;border-radius:99px;font-weight:700;
+}
+.goal .gph .gnoimg{position:absolute;inset:0;display:grid;place-items:center;color:rgba(255,255,255,.8)}
+.goal .gph .gnoimg svg{width:34px;height:34px;stroke:currentColor;fill:none;stroke-width:1.5}
+.goal .bd{padding:12px 15px 15px}
+.gbar{height:9px;border-radius:99px;background:var(--linen);border:1px solid var(--line);overflow:hidden;margin:9px 0}
+.gbar i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,var(--mid),var(--deep))}
+.gnum{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:11.5px;color:var(--ink2)}
+.gnum b{font-size:15px;color:var(--aink)}
+.goal.ok .gbar i{background:linear-gradient(90deg,#7FBF9A,#2F9E6B)}
+
+/* ---------- pantalla de licencia (muro) ---------- */
+#lic{
+  position:fixed;inset:0;z-index:130;background:var(--linen);overflow-y:auto;overscroll-behavior:contain;
+  display:flex;flex-direction:column;align-items:center;justify-content:flex-start;text-align:center;
+  padding:calc(26px + env(safe-area-inset-top)) 24px calc(26px + env(safe-area-inset-bottom));
+}
+#lic>*{flex:none;position:relative;z-index:2}
+/* centrado con los margin:auto y NO con justify-content:center: en una
+   pantalla chica, «center» corta la parte de arriba y no se puede scrollear
+   hasta ella. Así, si sobra lugar se centra y si falta, se scrollea entera. */
+#lic .lock{margin-top:auto}
+#lic .lpie{margin-bottom:auto}
+/* corazoncitos flotando de fondo */
+#lic .lsky{position:absolute;inset:0;z-index:0;overflow:hidden;pointer-events:none}
+#lic .lsky i{position:absolute;color:var(--mid);opacity:.42;font-size:15px;font-style:normal}
+#lic .lock{
+  position:relative;width:98px;height:98px;border-radius:50%;display:grid;place-items:center;margin-bottom:16px;
+  background:linear-gradient(150deg,var(--ban),var(--ban2));box-shadow:0 14px 32px rgba(43,38,34,.22);
+}
+#lic .lock svg{width:46px;height:46px;stroke:#FFF;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+#lic .lgo{font-family:var(--serif);font-style:italic;font-weight:700;font-size:40px;letter-spacing:1px;line-height:1}
 #lic .lgo em{color:var(--deep);font-style:italic}
-#lic .lt{font-family:var(--serif);font-style:italic;font-size:22px;line-height:1.2}
-#lic .ls{font-size:13px;color:var(--ink2);max-width:330px;line-height:1.55}
-#lic input{width:min(330px,90vw);padding:13px 15px;border-radius:13px;border:1px solid var(--line);
-  background:var(--paper);color:var(--ink);font-family:var(--mono);font-size:15px;text-align:center;letter-spacing:2px;outline:none;text-transform:uppercase}
-#lic .btn{max-width:330px}
-#lic .lerr{color:#9C3B2E;font-size:12px;font-family:var(--mono);min-height:16px}
+#lic .lt{font-family:var(--serif);font-style:italic;font-size:23px;line-height:1.2;margin-top:10px}
+#lic .ls{font-size:13px;color:var(--ink2);max-width:340px;line-height:1.55;margin-top:8px}
+#lic .lcta{display:flex;flex-direction:column;gap:9px;width:min(340px,92vw);margin-top:16px}
+#lic .lcta a{
+  display:flex;align-items:center;justify-content:center;gap:10px;text-decoration:none;
+  padding:12px 16px;border-radius:14px;border:1px solid var(--line);background:var(--paper);
+  color:var(--ink);font-weight:700;font-size:14px;
+}
+#lic .lcta a:active{transform:scale(.98)}
+#lic .lcta a svg{width:19px;height:19px;stroke:var(--deep);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+#lic .lcta a b{font-family:var(--mono);font-weight:600;font-size:13.5px;letter-spacing:.3px}
+#lic .lsep{
+  display:flex;align-items:center;gap:11px;width:min(340px,92vw);margin:20px 0 12px;color:var(--ink2);
+  font-family:var(--mono);font-size:9.5px;letter-spacing:1.4px;text-transform:uppercase;
+}
+#lic .lsep:before,#lic .lsep:after{content:'';flex:1;height:1px;background:var(--line)}
+#lic input{
+  width:min(340px,92vw);padding:13px 15px;border-radius:13px;border:1px solid var(--line);
+  background:var(--paper);color:var(--ink);font-family:var(--mono);font-size:15px;text-align:center;
+  letter-spacing:2px;outline:none;text-transform:uppercase;
+}
+#lic input:focus{border-color:var(--mid)}
+#lic .btn{width:min(340px,92vw);margin-top:10px}
+#lic .lerr{color:#9C3B2E;font-size:12px;font-family:var(--mono);min-height:17px;margin-top:8px}
+#lic .lpie{font-size:11px;color:var(--ink2);margin-top:16px;max-width:320px;line-height:1.5}
 
 @media (prefers-reduced-motion: reduce){
   *{transition:none!important;animation:none!important}
@@ -684,7 +786,7 @@ h1.vt{font-family:var(--serif);font-style:italic;font-weight:600;font-size:30px;
      · package.json y el versionName/versionCode del APK
        (los sincroniza scripts/build-web.mjs en cada npm run sync)
    Al sacar un parche: cambiar el número acá y nada más.        */
-const APP_VER='1.2.2';
+const APP_VER='1.3.0';
 
 /* ---------- utilidades ---------- */
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
@@ -708,13 +810,13 @@ function weekStart(){ const d=new Date(); d.setDate(d.getDate()-((d.getDay()+6)%
 const KEY='texma';
 const DEF={
   settings:{pal:'rosa',name:'',photo:'',banner:'#F2803C',notif:false,customPal:'',cats:{in:[],out:[]},
-    onboarded:false,profiled:false,
+    onboarded:false,profiled:false,invBanner:'',invTitle:'',
     shopCats:[],stockCats:[],cycleOn:true,stockOn:true,
     cycle:{avgCycle:28,avgPeriod:5},
     nSound:'texma',
     nMods:{events:true,meds:true,pagos:true,grat:false,gratTime:'20:00',entreno:false,entrenoTime:'19:00',ciclo:false}},
   events:[],tasks:[],notes:[],routines:[],workoutLogs:[],trainLogs:[],
-  meds:[],medLog:{},hobbies:[],hobbyLogs:[],finance:[],sewing:[],
+  meds:[],medLog:{},hobbies:[],hobbyLogs:[],finance:[],investments:[],sewing:[],
   shopping:[],gratitude:[],recurring:[],priceBook:[],stock:[],stockMoves:[],periods:[],cycleLogs:[],
   fired:{}
 };
@@ -728,11 +830,14 @@ function migrate(d){
   /* el modo oscuro se eliminó: TEXMA es siempre clara */
   delete st.theme; delete st.dark; delete st.fixDark;
   if(typeof st.photo!=='string') st.photo='';
+  if(typeof st.invBanner!=='string') st.invBanner='';
+  if(typeof st.invTitle!=='string') st.invTitle='';
   if(!/^#[0-9a-f]{6}$/i.test(st.banner||'')) st.banner='#F2803C';
   if(st.profiled===undefined) st.profiled=!!(st.name||'').trim();
   const s={...JSON.parse(JSON.stringify(DEF)),...d,settings:st};
   /* claves nuevas que pueden faltar en copias viejas */
-  ['trainLogs','priceBook','stock','stockMoves','periods','cycleLogs'].forEach(k=>{ if(!Array.isArray(s[k])) s[k]=[]; });
+  ['trainLogs','priceBook','stock','stockMoves','periods','cycleLogs','investments'].forEach(k=>{ if(!Array.isArray(s[k])) s[k]=[]; });
+  s.investments.forEach(m=>{ if(!Array.isArray(m.hist)) m.hist=[]; });
   if(!s.fired||typeof s.fired!=='object') s.fired={};
   s.shopping.forEach(i=>{ if(i.cat===undefined) i.cat='General'; });
   s.sewing.forEach(p=>{
@@ -931,6 +1036,8 @@ function delBtn(txt){ return `<button class="btn danger" data-del>${txt||'Elimin
    NAVEGACIÓN
 ============================================================ */
 let cur='hoy';
+/* en true recién cuando pasó el onboarding Y el muro de licencia */
+let appAbierta=false;
 function navMark(){
   let act=null;
   $$('#nav button').forEach(b=>{
@@ -949,6 +1056,9 @@ function navMark(){
   gl.dataset.set='1';
 }
 function go(v,fromPop){
+  /* mientras esté el onboarding o el muro de licencia no se dibuja nada:
+     si no, el botón «atrás» del celu armaba la vista detrás del bloqueo */
+  if(!appAbierta) return;
   if(sheetOpen&&sheetDirty){
     dlg({title:'¿Descartar cambios?',msg:'Hay cambios sin guardar en este formulario.',
          okTxt:'Descartar',cancelTxt:'Seguir editando',danger:true},ok=>{
@@ -1008,6 +1118,7 @@ const MICONS={
   meds:'<rect x="4" y="8.75" width="16" height="6.5" rx="3.25" transform="rotate(-30 12 12)"/><path d="M9.7 16 14.3 8"/>',
   hobbies:'<path d="M12 4.6l2.2 4.5 4.9.7-3.6 3.5.9 4.9L12 15.9l-4.4 2.3.9-4.9-3.6-3.5 4.9-.7Z"/>',
   fin:'<circle cx="12" cy="12" r="8.2"/><path d="M12 7.6v8.8M14.6 9.6c-.5-.9-1.5-1.4-2.6-1.4-1.6 0-2.9.9-2.9 2.1 0 2.7 5.6 1.3 5.6 4 0 1.2-1.3 2.1-2.9 2.1-1.2 0-2.2-.6-2.7-1.5"/>',
+  inv:'<path d="M4 20V4.5M4 20h16"/><path d="M7.6 15.4 11.2 10.7l2.9 2.4 4.6-6"/><path d="M15.6 7.1h3.1v3.1"/>',
   tareas:'<rect x="3.5" y="3.5" width="17" height="17" rx="4"/><path d="M8 12.2l2.8 2.8L16.2 9"/>',
   costura:'<circle cx="6" cy="6.5" r="2.6"/><circle cx="6" cy="17.5" r="2.6"/><path d="M8.3 8.1 20 19.5M8.3 15.9 20 4.5"/>',
   cal:'<rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M8 3v4M16 3v4M3.5 10h17"/>',
@@ -1021,6 +1132,7 @@ const TILES=[
   ['costura','Costura','#E5407A'],
   ['compras','Compras','#2F9E6B'],
   ['fin','Finanzas','#3E7BD6'],
+  ['inv','Inversiones','#C08A3C'],
   ['entreno','Entreno','#F2803C'],
   ['ciclo','Ciclo','#C2568F'],
   ['stock','Stock','#8B6CD9'],
@@ -1042,6 +1154,7 @@ function masSheet(){
   const CL={...Object.fromEntries(TILES.map(([v,,c])=>[v,c])),hobbies:'#B0883F',ajustes:'#7A8B99'};
   const items=[
     ['costura','Costura','Proyectos, medidas y plata'],
+    ['inv','Inversiones','Metas con foto: la casa, el auto, un viaje'],
     ['tareas','Tareas','Pendientes y hechas'],
     ['compras','Lista de compras','Por categoría, con precios'],
     ['entreno','Entrenamiento','Rutinas y racha'],
@@ -2672,6 +2785,266 @@ VIEWS.fin={
   }
 };
 
+/* ============================================================
+   INVERSIONES
+   ------------------------------------------------------------
+   Sección APARTE de Finanzas, a propósito: los aportes de una meta
+   viven en S.investments y NO tocan S.finance ni el balance del mes.
+   Son dos cuentas distintas y ninguna mira a la otra.
+   Cada meta es visual: lleva su foto (la casa, el auto, el viaje) y
+   arriba de todo va el banner de imagen de la sección.
+============================================================ */
+function invMath(m){
+  const meta=+m.goal||0;
+  const puesto=(m.hist||[]).reduce((a,h)=>a+(+h.amount||0),0);
+  const pct=meta>0?Math.min(100,Math.round(puesto/meta*100)):0;
+  return {meta,puesto,pct,falta:Math.max(0,meta-puesto),listo:meta>0&&puesto>=meta};
+}
+/* pedir una imagen sin dejar un <input file> colgado en el HTML */
+function pedirFoto(cb,max){
+  const i=document.createElement('input');
+  i.type='file'; i.accept='image/*'; i.style.display='none';
+  document.body.appendChild(i);
+  const limpiar=()=>{ try{ i.remove(); }catch(e){} };
+  i.addEventListener('change',()=>{
+    const f=i.files[0];
+    if(f) shrinkImg(f,d=>{ cb(d); limpiar(); },max||900); else limpiar();
+  });
+  setTimeout(limpiar,120000);   /* si cancela, no queda basura en el DOM */
+  i.click();
+}
+const INV_VACIA='<svg viewBox="0 0 24 24"><path d="M3.5 8.5h3.2l1.4-2.2h7.8l1.4 2.2h3.2v11h-17Z"/><circle cx="12" cy="14" r="3.4"/></svg>';
+
+VIEWS.inv={
+  fab(){ goalForm(); },
+  render(){
+    const metas=[...S.investments].sort((a,b)=>{
+      const A=invMath(a), B=invMath(b);
+      return (A.listo?1:0)-(B.listo?1:0)||(b.created||0)-(a.created||0);
+    });
+    const tPuesto=metas.reduce((s,m)=>s+invMath(m).puesto,0);
+    const tMeta=metas.reduce((s,m)=>s+invMath(m).meta,0);
+    const tPct=tMeta>0?Math.min(100,Math.round(tPuesto/tMeta*100)):0;
+    const ban=S.settings.invBanner, tit=(S.settings.invTitle||'').trim();
+    const camIco='<svg viewBox="0 0 24 24"><path d="M3.5 8.5h3.2l1.4-2.2h7.8l1.4 2.2h3.2v11h-17Z"/><circle cx="12" cy="14" r="3.4"/></svg>';
+    V.innerHTML=`
+      <h1 class="vt vc">Inversiones</h1>
+      <div class="invhero vc" id="invBan">
+        ${ban?`<img src="${ban}" alt="">`:''}
+        <div class="sh"></div>
+        <span class="cam">${camIco}</span>
+        ${ban||tit
+          ? `<div class="tx"><div class="k">Nuestra meta</div><div class="t">${esc(tit||'Nuestra meta')}</div></div>`
+          : `<div class="vac"><b>Poné la foto de tu meta</b>
+               <span>La casa, el auto, un viaje. Tocá acá y elegí la imagen que te da ganas.</span></div>`}
+      </div>
+      <div class="card vc">
+        <div class="lbl">Juntado en total</div>
+        <div class="balance" id="invN">${fMoney(tPuesto)}</div>
+        <div class="carry">
+          <span>De una meta de <b class="mono">${fMoney(tMeta)}</b></span>
+          <span><b class="mono" style="color:var(--deep)">${tPct}%</b> del camino</span>
+        </div>
+        <div class="gbar" style="margin-top:12px"><i data-w="${tPct}"></i></div>
+        <div class="s muted" style="margin-top:10px;font-size:11.5px">
+          Esto va por separado de Finanzas: acá no se toca el balance del mes.
+        </div>
+      </div>
+      <div class="lbl" style="margin-top:20px">Tus metas · ${metas.length}</div>
+      ${metas.length?metas.map(m=>{
+        const c=invMath(m);
+        return `<div class="goal vc ${c.listo?'ok':''}" data-goal="${m.id}">
+          <div class="gph">
+            ${m.img?`<img src="${m.img}" alt="">`:`<div class="gnoimg">${INV_VACIA}</div>`}
+            <div class="sh"></div>
+            <span class="gp">${c.pct}%</span>
+            <div class="gt">${esc(m.name)}</div>
+          </div>
+          <div class="bd">
+            <div class="gnum"><span>Juntado</span><span>Meta</span></div>
+            <div class="gnum" style="margin-top:2px">
+              <b>${fMoney(c.puesto)}</b>
+              <b style="font-size:13px;color:var(--ink2)">${fMoney(c.meta)}</b>
+            </div>
+            <div class="gbar"><i data-w="${c.pct}"></i></div>
+            <div class="gnum">
+              <span>${c.listo?'¡Meta cumplida! ♥':'Falta '+fMoney(c.falta)}</span>
+              <span>${m.due?'para '+fShort(m.due):(m.hist||[]).length+' aporte'+((m.hist||[]).length===1?'':'s')}</span>
+            </div>
+          </div>
+        </div>`;
+      }).join(''):`<div class="card vc"><div class="empty">
+        Todavía no hay ninguna meta — tocá ＋ y armá la primera ♥</div></div>`}`;
+    const g=G();
+    if(g){
+      const o={v:0}, elN=V.querySelector('#invN');
+      g.to(o,{v:tPuesto,duration:.9,ease:'power2.out',onUpdate:()=>elN.textContent=fMoney(o.v)});
+      V.querySelectorAll('[data-w]').forEach(i=>g.to(i,{width:i.dataset.w+'%',duration:.8,ease:'power2.out',delay:.2}));
+    } else V.querySelectorAll('[data-w]').forEach(i=>i.style.width=i.dataset.w+'%');
+    V.querySelector('#invBan').addEventListener('click',()=>invBannerSheet());
+    V.querySelectorAll('[data-goal]').forEach(el=>el.addEventListener('click',()=>goalSheet(el.dataset.goal)));
+  }
+};
+
+/* ---- banner de imagen de la sección ---- */
+function invBannerSheet(){
+  const b=sheet('Banner de Inversiones',`
+    <div class="invhero" id="ibPrev" style="cursor:default">
+      ${S.settings.invBanner?`<img src="${S.settings.invBanner}" alt="">`:''}
+      <div class="sh"></div>
+      ${S.settings.invBanner?'':'<div class="vac"><b>Sin foto todavía</b><span>Elegí una imagen que represente la meta.</span></div>'}
+    </div>
+    <div class="fld" style="margin-top:14px"><label>Título del banner</label>
+      <input id="ibT" value="${esc(S.settings.invTitle||'')}" placeholder="Nuestra casa, Mi auto, El viaje…" maxlength="34"></div>
+    <button class="btn" id="ibPic">📷 Elegir la imagen</button>
+    ${S.settings.invBanner?'<button class="btn ghost" id="ibDel" style="margin-top:10px">Quitar la imagen</button>':''}
+    <div class="btnrow"><button class="btn primary" data-ok>Guardar</button></div>
+    <div class="s muted" style="margin-top:10px;font-size:11.5px;text-align:center">
+      La imagen se guarda achicada en este celular, como las fotos de costura.</div>`);
+  b.querySelector('#ibPic').addEventListener('click',()=>{
+    pedirFoto(d=>{
+      S.settings.invBanner=d; save();
+      const p=b.querySelector('#ibPrev');
+      p.querySelector('.vac')?.remove();
+      const old=p.querySelector('img'); if(old) old.remove();
+      p.insertAdjacentHTML('afterbegin',`<img src="${d}" alt="">`);
+      toast('Banner guardado ♥');
+    },900);
+  });
+  b.querySelector('#ibDel')?.addEventListener('click',()=>{
+    S.settings.invBanner=''; save(); closeSheet(); go('inv'); toast('Imagen quitada');
+  });
+  b.querySelector('[data-ok]').addEventListener('click',()=>{
+    S.settings.invTitle=b.querySelector('#ibT').value.trim();
+    save(); closeSheet(); go('inv'); toast('Guardado ✓');
+  });
+}
+
+/* ---- alta / edición de una meta ---- */
+function goalForm(gl){
+  const m=gl||{name:'',goal:'',due:'',note:'',img:'',hist:[]};
+  let img=m.img||'';
+  const b=sheet(gl?'Editar meta':'Nueva meta',`
+    <div class="goal" style="cursor:pointer" id="gfPic">
+      <div class="gph">
+        ${img?`<img src="${img}" alt="">`:`<div class="gnoimg">${INV_VACIA}</div>`}
+        <div class="sh"></div>
+        <div class="gt">${esc(m.name)||'Tocá para poner la foto'}</div>
+      </div>
+    </div>
+    <div class="fld" style="margin-top:14px"><label>¿Qué querés lograr?</label>
+      <input id="gN" value="${esc(m.name)}" placeholder="Nuestra casa, Mi auto, Viaje a Brasil…" maxlength="40"></div>
+    <div class="grid2">
+      <div class="fld"><label>Monto de la meta</label>
+        <input id="gG" type="number" inputmode="decimal" step="0.01" min="0" value="${m.goal}" placeholder="0"></div>
+      <div class="fld"><label>Para cuándo</label><input id="gD" type="date" value="${m.due||''}"></div>
+    </div>
+    <div class="fld"><label>Nota</label><textarea id="gNo" placeholder="Opcional">${esc(m.note||'')}</textarea></div>
+    <div class="btnrow">${gl?delBtn():''}<button class="btn primary" data-ok>Guardar</button></div>`);
+  const nI=b.querySelector('#gN');
+  b.querySelector('#gfPic').addEventListener('click',()=>{
+    pedirFoto(d=>{
+      img=d; sheetDirty=true;
+      const ph=b.querySelector('#gfPic .gph');
+      ph.querySelector('.gnoimg')?.remove();
+      ph.querySelector('img')?.remove();
+      ph.insertAdjacentHTML('afterbegin',`<img src="${d}" alt="">`);
+    },900);
+  });
+  nI.addEventListener('input',()=>{
+    sheetDirty=true;
+    b.querySelector('#gfPic .gt').textContent=nI.value.trim()||'Tocá para poner la foto';
+  });
+  b.querySelector('[data-ok]').addEventListener('click',()=>{
+    const name=nI.value.trim();
+    if(!name) return toast('Falta el nombre de la meta');
+    const goal=+b.querySelector('#gG').value||0;
+    if(goal<=0) return toast('Falta el monto de la meta');
+    const data={name,goal,due:b.querySelector('#gD').value||'',note:b.querySelector('#gNo').value.trim(),img};
+    if(gl) Object.assign(gl,data);
+    else S.investments.push({id:uid(),...data,hist:[],created:Date.now()});
+    save(); closeSheet(); go('inv'); toast(gl?'Meta guardada ✓':'¡Meta creada! ♥');
+  });
+  b.querySelector('[data-del]')?.addEventListener('click',()=>{
+    dlg({title:'¿Eliminar esta meta?',msg:'Se pierden su foto y todos sus aportes.',okTxt:'Eliminar',danger:true},ok=>{
+      if(!ok) return;
+      S.investments=S.investments.filter(x=>x.id!==gl.id);
+      save(); closeSheet(); go('inv'); toast('Meta eliminada');
+    });
+  });
+}
+
+/* ---- detalle de una meta: aportes ---- */
+function goalSheet(id){
+  const m=S.investments.find(x=>x.id===id); if(!m) return;
+  const c=invMath(m);
+  const hist=[...(m.hist||[])].sort((a,b2)=>(b2.date||'').localeCompare(a.date||''));
+  const b=sheet(m.name,`
+    <div class="goal ${c.listo?'ok':''}" style="cursor:default">
+      <div class="gph">
+        ${m.img?`<img src="${m.img}" alt="">`:`<div class="gnoimg">${INV_VACIA}</div>`}
+        <div class="sh"></div>
+        <span class="gp">${c.pct}%</span>
+        <div class="gt">${esc(m.name)}</div>
+      </div>
+      <div class="bd">
+        <div class="gnum"><span>Juntado</span><span>Meta</span></div>
+        <div class="gnum" style="margin-top:2px">
+          <b>${fMoney(c.puesto)}</b><b style="font-size:13px;color:var(--ink2)">${fMoney(c.meta)}</b></div>
+        <div class="gbar"><i style="width:${c.pct}%"></i></div>
+        <div class="gnum"><span>${c.listo?'¡Meta cumplida! ♥':'Falta '+fMoney(c.falta)}</span>
+          <span>${m.due?'para '+fShort(m.due):''}</span></div>
+      </div>
+    </div>
+    ${m.note?`<div class="card vc" style="margin-top:12px"><div class="lbl">Nota</div>
+      <div class="small">${esc(m.note)}</div></div>`:''}
+    <div class="card vc" style="margin-top:12px"><div class="lbl">Aportes · ${hist.length}</div>
+      ${hist.length?hist.map(h=>`<div class="item" data-ap="${h.id}" style="cursor:pointer">
+        <div class="grow"><div class="t" style="font-weight:600">${esc(h.note||'Aporte')}</div>
+        <div class="s">${fShort(h.date)}</div></div>
+        <span class="mono" style="font-size:13px;color:var(--deep)">+ ${fMoney(h.amount)}</span>
+      </div>`).join(''):'<div class="empty">Todavía no pusiste nada acá</div>'}
+    </div>
+    <div class="btnrow">
+      <button class="btn" id="gEd">Editar meta</button>
+      <button class="btn primary" id="gAdd">＋ Aporte</button>
+    </div>`);
+  b.querySelector('#gAdd').addEventListener('click',()=>aporteForm(id));
+  b.querySelector('#gEd').addEventListener('click',()=>goalForm(m));
+  b.querySelectorAll('[data-ap]').forEach(r=>r.addEventListener('click',()=>{
+    const ap=(m.hist||[]).find(x=>x.id===r.dataset.ap);
+    if(ap) aporteForm(id,ap);
+  }));
+}
+
+function aporteForm(id,ap){
+  const m=S.investments.find(x=>x.id===id); if(!m) return;
+  const a=ap||{amount:'',date:hoyISO(),note:''};
+  const b=sheet(ap?'Editar aporte':'Nuevo aporte',`
+    <div class="grid2">
+      <div class="fld"><label>Monto</label>
+        <input id="aA" type="number" inputmode="decimal" step="0.01" value="${a.amount}" placeholder="0"></div>
+      <div class="fld"><label>Fecha</label><input id="aD" type="date" value="${a.date}"></div>
+    </div>
+    <div class="fld"><label>Detalle</label><input id="aN" value="${esc(a.note||'')}" placeholder="Opcional"></div>
+    <div class="s muted" style="font-size:11.5px">Poné un monto negativo si sacaste plata de esta meta.</div>
+    <div class="btnrow">${ap?delBtn():''}<button class="btn primary" data-ok>Guardar</button></div>`);
+  b.querySelector('[data-ok]').addEventListener('click',()=>{
+    const amount=+b.querySelector('#aA').value;
+    if(!amount) return toast('Falta el monto');
+    const data={amount,date:b.querySelector('#aD').value||hoyISO(),note:b.querySelector('#aN').value.trim()};
+    const yaEstaba=invMath(m).listo;          /* ANTES de tocar nada */
+    if(ap) Object.assign(ap,data); else m.hist.push({id:uid(),...data});
+    const reciEn=!yaEstaba&&invMath(m).listo; /* recién ahora llegó */
+    save(); closeSheet(); go('inv');
+    toast(reciEn?'¡Llegaste a la meta! ♥':'Aporte guardado ✓');
+  });
+  b.querySelector('[data-del]')?.addEventListener('click',()=>{
+    m.hist=m.hist.filter(x=>x.id!==ap.id);
+    save(); closeSheet(); go('inv'); toast('Aporte eliminado');
+  });
+}
+
 /* ---------- CICLO MENSTRUAL ---------- */
 function cycleStats(){
   const ps=[...S.periods].sort((a,b)=>a.start.localeCompare(b.start));
@@ -3024,8 +3397,8 @@ VIEWS.ajustes={
     const nm=(S.settings.name||'').trim();
     V.innerHTML=`
       <div class="profhead">
-        <div class="profpic" id="setPic">
-          ${S.settings.photo?`<img src="${S.settings.photo}" alt="Tu foto">`:(nm?nm[0].toUpperCase():'♥')}
+        <div class="profpicw" id="setPic">
+          <div class="profpic">${S.settings.photo?`<img src="${S.settings.photo}" alt="Tu foto">`:(nm?nm[0].toUpperCase():'♥')}</div>
           <span class="cam"><svg viewBox="0 0 24 24"><path d="M3.5 8.5h3.2l1.4-2.2h7.8l1.4 2.2h3.2v11h-17Z"/><circle cx="12" cy="14" r="3.4"/></svg></span>
         </div>
         <input type="file" id="setFile" accept="image/*" style="display:none">
@@ -3603,15 +3976,21 @@ async function pushSync(sub){
 /* cada vez que cambia algo que se avisa, se re-sincroniza (sin spamear) */
 let syncT=null;
 function pushTouch(){ clearTimeout(syncT); syncT=setTimeout(()=>pushSync(),4000); }
-document.addEventListener('visibilitychange',()=>{ if(!document.hidden){ checkNotifs(); scheduleTriggers(); } });
-window.addEventListener('focus',checkNotifs);
+/* sin licencia no se revisa ni se programa nada */
+document.addEventListener('visibilitychange',()=>{
+  if(!appAbierta||document.hidden) return;
+  checkNotifs(); scheduleTriggers();
+});
+window.addEventListener('focus',()=>{ if(appAbierta) checkNotifs(); });
 
 /* ============================================================
    ONBOARDING (solo la primera vez) · fotos con degradé
 ============================================================ */
 const ARROW='<svg viewBox="0 0 24 24"><path d="M5 12h13M12.5 6.5 19 12l-6.5 5.5"/></svg>';
 
-function showOnb(){
+/* `alTerminar` se llama cuando la usuaria sale del último slide.
+   El onboarding NO sabe nada de licencias: eso lo decide arrancar(). */
+function showOnb(alTerminar){
   const slides=[
     {img:'onb1.jpg',t:'Todo tuyo, en un solo lugar',
      s:'Agenda, tareas, notas y tu costura con medidas, fotos y toda la plata de cada trabajo.',
@@ -3626,9 +4005,10 @@ function showOnb(){
   const w=document.createElement('div'); w.id='onb'; let i=0;
   const cerrar=()=>{
     S.settings.onboarded=true; save();
+    const seguir=()=>{ w.remove(); (alTerminar||afterOnb)(); };
     const g2=G();
-    if(g2) g2.to(w,{opacity:0,duration:.35,onComplete:()=>{ w.remove(); afterOnb(); }});
-    else { w.remove(); afterOnb(); }
+    if(g2) g2.to(w,{opacity:0,duration:.35,onComplete:seguir});
+    else seguir();
   };
   const paint=()=>{
     const ultima=i===slides.length-1;
@@ -3718,13 +4098,15 @@ function showProfileSetup(){
   const w=document.createElement('div'); w.id='prof';
   let foto=S.settings.photo||'';
   const pintarFoto=()=>{
-    const p=w.querySelector('#pfPic');
+    const p=w.querySelector('#pfPic .profpic');
     const n=(w.querySelector('#pfName').value||'').trim();
-    p.innerHTML=(foto?`<img src="${foto}" alt="">`:(n?n[0].toUpperCase():'♥'))
-      +`<span class="cam"><svg viewBox="0 0 24 24"><path d="M3.5 8.5h3.2l1.4-2.2h7.8l1.4 2.2h3.2v11h-17Z"/><circle cx="12" cy="14" r="3.4"/></svg></span>`;
+    p.innerHTML=(foto?`<img src="${foto}" alt="">`:(n?n[0].toUpperCase():'♥'));
   };
   w.innerHTML=`
-    <div class="profpic" id="pfPic"></div>
+    <div class="profpicw" id="pfPic">
+      <div class="profpic"></div>
+      <span class="cam"><svg viewBox="0 0 24 24"><path d="M3.5 8.5h3.2l1.4-2.2h7.8l1.4 2.2h3.2v11h-17Z"/><circle cx="12" cy="14" r="3.4"/></svg></span>
+    </div>
     <input type="file" id="pfFile" accept="image/*" style="display:none">
     <div class="pt" style="margin-top:18px">¿Cómo te llamás?</div>
     <div class="ps">Poné tu foto y tu nombre. TEXMA te va a saludar así cada vez que entres — lo podés cambiar cuando quieras.</div>
@@ -3867,12 +4249,40 @@ function abrirAfuera(url){
       no coincide y el código ya está quemado.
    Para activarlo: poné LIC_ON=true, pegá la clave pública (server/keygen.mjs)
    y la URL del Worker.
+
+   ORDEN DEL ARRANQUE (importante): el onboarding de 3 pantallas se ve
+   SIEMPRE, con licencia o sin ella — así quien la instala ve de qué se
+   trata. El muro aparece justo DESPUÉS del onboarding y ahí se frena
+   todo: sin código válido no arranca ninguna otra parte de la app.
 ============================================================ */
-const LIC_ON=false;                       /* ← poné true para empezar a pedir código */
+const LIC_ON=true;                        /* ← false vuelve a dejar la app libre */
 const LIC_API='https://texma-lic.texma.workers.dev';
 /* clave PÚBLICA de verificación · la privada vive solo como secreto del Worker */
 const LIC_PUB={kty:'EC',crv:'P-256',x:'nbx_HFNYdj08pC-3NvFnww1Tk_xDgAOssXK4hD98vxw',y:'cSi1eaLa8s2MIhPuywcLQtflNYlb7AGCCxVq8S289sI'};
-const DEVK='texma_dev', LICK='texma_lic';
+const DEVK='texma_dev', LICK='texma_lic', MSTK='texma_mk';
+
+/* ---------- datos de contacto del muro ---------- */
+const LIC_TELS=[['543875760091','+54 387 576-0091'],['543876145611','+54 387 614-5611']];
+const LIC_MAIL='texma.ok@gmail.com';
+
+/* ---------- CÓDIGO MAESTRO · la puerta de atrás nuestra ----------
+   Guardamos el SHA-256 y no el código, así no se lee de un vistazo
+   abriendo el archivo. Sirve para que María y yo entremos en cualquier
+   celular sin quemar un código de venta.
+   Para cambiarlo: node scripts/codigo-maestro.mjs "MI FRASE NUEVA"
+   OJO: esto NO es seguridad de verdad. Quien sepa programar abre el
+   HTML (o descomprime el APK) y saca el muro igual — igual que dice
+   server/README.md. Es para frenar la copia casual, nada más. */
+const LIC_MASTER_SHA='2bd742cce998845f4f111d239dee0435e9a16bf4dc034732d17576fd2f7766ed';
+async function sha256hex(s){
+  const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));
+  return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('');
+}
+async function esMaestro(code){
+  try{ return (await sha256hex(String(code).trim().toUpperCase()))===LIC_MASTER_SHA; }
+  catch(e){ return false; }
+}
+const maestroPuesto=()=>localStorage.getItem(MSTK)===LIC_MASTER_SHA;
 
 function deviceId(){
   let d=localStorage.getItem(DEVK);
@@ -3906,38 +4316,108 @@ async function licActivate(code){
   localStorage.setItem(LICK,j.token);
   return j.token;
 }
+/* pantalla de bloqueo: de acá no se pasa sin código */
 function licScreen(msg){
   const w=document.createElement('div'); w.id='lic';
+  const waIco='<svg viewBox="0 0 24 24"><path d="M20.2 11.6a8.2 8.2 0 0 1-11.9 7.3L4 20.2l1.4-4.1a8.2 8.2 0 1 1 14.8-4.5Z"/><path d="M8.9 9.2c.2-.5.4-.5.7-.5h.6c.2 0 .4 0 .6.5l.6 1.4c.1.3 0 .5-.1.6l-.4.4c-.1.2-.2.3 0 .6a6 6 0 0 0 2.4 2.1c.3.1.5.1.6 0l.5-.5c.2-.2.4-.2.6-.1l1.4.7c.3.1.4.3.4.5 0 1-.7 1.6-1.6 1.7-1.1 0-2.7-.6-4-1.7a9 9 0 0 1-2.4-3.4c-.3-.9-.2-1.7.1-2.3Z"/></svg>';
+  const mailIco='<svg viewBox="0 0 24 24"><rect x="3" y="5.5" width="18" height="13" rx="2.6"/><path d="m3.8 7 8.2 6 8.2-6"/></svg>';
   w.innerHTML=`
+    <div class="lsky" id="licSky"></div>
+    <div class="lock" id="licLock">
+      <svg viewBox="0 0 24 24">
+        <path id="licArc" d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/>
+        <rect x="4.6" y="10.5" width="14.8" height="9.6" rx="2.8"/>
+        <path d="M12 14v2.6"/>
+      </svg>
+    </div>
     <div class="lgo"><em>T</em>EXMA</div>
-    <div class="lt">Activá tu TEXMA</div>
-    <div class="ls">Pegá el código que te llegó con tu compra. Se usa una sola vez y queda atado a este celular.</div>
-    <input id="licIn" placeholder="XXXX-XXXX-XXXX" maxlength="19" autocomplete="off">
+    <div class="lt">Para entrar necesitás tu código</div>
+    <div class="ls">TEXMA no se baja de ninguna tienda: se compra una vez y te damos un
+      código de acceso para tu celular. Escribinos y te lo pasamos al toque ♥</div>
+    <div class="lcta">
+      ${LIC_TELS.map(([n,lindo])=>`<a href="https://wa.me/${n}" target="_blank" rel="noopener">${waIco}<b>${lindo}</b></a>`).join('')}
+      <a href="mailto:${LIC_MAIL}" target="_blank" rel="noopener">${mailIco}<b>${LIC_MAIL}</b></a>
+    </div>
+    <div class="lsep">¿Ya lo tenés?</div>
+    <input id="licIn" placeholder="XXXX-XXXX-XXXX" maxlength="24" autocomplete="off"
+           autocapitalize="characters" spellcheck="false">
     <div class="lerr" id="licEr">${esc(msg||'')}</div>
-    <button class="btn primary" id="licGo">Activar</button>
-    <div class="ls" style="font-size:11px;opacity:.7">¿Cambiaste de celular? Escribinos con tu código y te lo reactivamos.</div>`;
+    <button class="btn primary" id="licGo">Activar mi TEXMA</button>
+    <div class="lpie">El código se usa una sola vez y queda atado a este celular.
+      ¿Cambiaste de teléfono? Escribinos con tu código y te lo reactivamos.</div>`;
   document.body.appendChild(w);
+
+  /* ---- animación de entrada (GSAP local) ---- */
+  const g=G();
+  if(g){
+    const sky=w.querySelector('#licSky');
+    for(let i=0;i<14;i++){
+      const h=document.createElement('i'); h.textContent='♥';
+      h.style.left=(Math.random()*100)+'%';
+      h.style.top=(100+Math.random()*30)+'%';
+      h.style.fontSize=(11+Math.random()*13)+'px';
+      sky.appendChild(h);
+      g.to(h,{y:'-140vh',x:(Math.random()-.5)*90,rotation:(Math.random()-.5)*140,
+        duration:9+Math.random()*8,delay:Math.random()*7,repeat:-1,ease:'none'});
+    }
+    const tl=g.timeline();
+    tl.from('#licLock',{scale:0,rotation:-180,duration:.7,ease:'back.out(1.7)'})
+      .from('#lic .lgo',{y:16,opacity:0,duration:.4},'-=.25')
+      .from('#lic .lt, #lic .ls',{y:14,opacity:0,duration:.4,stagger:.07},'-=.2')
+      .from('#lic .lcta a',{y:16,opacity:0,duration:.36,stagger:.07},'-=.15')
+      .from('#lic .lsep, #lic input, #lic .btn, #lic .lpie',{y:12,opacity:0,duration:.34,stagger:.05},'-=.1');
+    /* el candado respira y de a ratos se sacude, como pidiendo la llave */
+    g.to('#licLock',{y:-7,duration:1.5,yoyo:true,repeat:-1,ease:'sine.inOut',delay:.9});
+    g.to('#licArc',{y:-2,duration:.14,repeat:5,yoyo:true,ease:'power1.inOut',
+      repeatDelay:0,delay:2.2,repeatRefresh:true});
+    g.timeline({repeat:-1,repeatDelay:4.5,delay:3.5})
+      .to('#licLock',{rotation:-7,duration:.09})
+      .to('#licLock',{rotation:7,duration:.09})
+      .to('#licLock',{rotation:-5,duration:.09})
+      .to('#licLock',{rotation:0,duration:.12});
+  }
+
   const inp=w.querySelector('#licIn'), er=w.querySelector('#licEr'), bt=w.querySelector('#licGo');
   const url=new URL(location.href), pre=url.searchParams.get('k');
   if(pre) inp.value=pre.toUpperCase();
-  bt.addEventListener('click',async ()=>{
+  const fallar=t=>{
+    er.textContent=t;
+    const g2=G();
+    if(g2) g2.fromTo(inp,{x:-9},{x:0,duration:.5,ease:'elastic.out(1.6,.32)'});
+  };
+  const entrar=async ()=>{
     const code=inp.value.trim();
-    if(code.length<6){ er.textContent='Código incompleto'; return; }
-    bt.disabled=true; bt.textContent='Activando…'; er.textContent='';
+    if(code.length<4){ fallar('Poné el código completo'); return; }
+    er.textContent='';
+    /* la puerta de atrás: no toca el servidor ni gasta un código de venta */
+    if(await esMaestro(code)){
+      localStorage.setItem(MSTK,LIC_MASTER_SHA);
+      cerrarLic(w,'Modo pruebas ✓');
+      return;
+    }
+    bt.disabled=true; bt.textContent='Activando…';
     try{
       const t=await licActivate(code);
       if(!await licVerify(t)) throw new Error('Licencia inválida');
-      w.remove(); toast('¡Activada! Bienvenida ♥');
-      if(!S.settings.onboarded) showOnb(); else afterOnb();
+      cerrarLic(w,'¡Activada! Bienvenida ♥');
     }catch(e){
-      er.textContent=e.message||'No pude activar';
-      bt.disabled=false; bt.textContent='Activar';
+      fallar(e.message||'No pude activar');
+      bt.disabled=false; bt.textContent='Activar mi TEXMA';
     }
-  });
+  };
+  bt.addEventListener('click',entrar);
+  inp.addEventListener('keydown',e=>{ if(e.key==='Enter') entrar(); });
   return w;
+}
+function cerrarLic(w,msg){
+  const g=G();
+  const seguir=()=>{ w.remove(); toast(msg); abrirApp(); };
+  if(g) g.to(w,{opacity:0,scale:1.03,duration:.4,ease:'power2.in',onComplete:seguir});
+  else seguir();
 }
 async function licGate(){
   if(!LIC_ON) return true;
+  if(maestroPuesto()) return true;              /* puerta de atrás ya usada acá */
   const t=localStorage.getItem(LICK);
   if(t&&await licVerify(t)) return true;
   const url=new URL(location.href), pre=url.searchParams.get('k');
@@ -3976,23 +4456,40 @@ function paintTop(){
     $('#bellDot').hidden=!pend;
   }catch(e){ $('#bellDot').hidden=true; }
 }
-paintTop();
-setInterval(paintTop,60000);
-go('hoy');
-try{ history.replaceState({v:'hoy'},''); }catch(e){}
-licGate().then(ok=>{
-  if(!ok) return;
-  if(!S.settings.onboarded){ showOnb(); return; }
-  afterOnb();
+/* ------------------------------------------------------------
+   EL ORDEN DEL ARRANQUE
+     1. Onboarding (3 pantallas) — se ve SIEMPRE, con licencia o sin ella.
+        Así quien la instala primero ve de qué se trata.
+     2. Muro de licencia — si no hay código válido, la pantalla de bloqueo
+        queda puesta y acá se termina: NO se dibuja ninguna vista, no se
+        programan avisos y no se registra el service worker.
+     3. Recién con licencia: alta de perfil, la app y los avisos.
+------------------------------------------------------------ */
+async function arrancar(){
+  if(!S.settings.onboarded) await new Promise(seguir=>showOnb(seguir));
+  const ok=await licGate();
+  if(ok) abrirApp();
+}
+function abrirApp(){
+  if(appAbierta) return;          /* con o sin licencia, se abre una sola vez */
+  appAbierta=true;
+  paintTop();
+  setInterval(paintTop,60000);
+  go('hoy');
+  try{ history.replaceState({v:'hoy'},''); }catch(e){}
+  animarEntrada();
+  afterOnb();                     /* alta de perfil, si todavía falta */
   /* el cartel de versión nueva espera un segundo: así no le pisa
      el saludo ni la pantalla de perfil a quien recién entra */
   if(S.settings.profiled) setTimeout(()=>chequearUpdate(),1200);
-});
-const g0=G();
+  arrancarAvisos();
+}
 /* la entrada solo se anima si la app está a la vista: si el celu la tiene
    en segundo plano, el navegador frena los frames y los botones quedarían
    invisibles. Igual, por las dudas, se limpian los estilos al terminar. */
-if(g0&&!document.hidden){
+function animarEntrada(){
+  const g0=G();
+  if(!g0||document.hidden) return;
   g0.from('#top',{y:-24,opacity:0,duration:.6,ease:'power2.out',clearProps:'all'});
   g0.from('#nav',{y:30,duration:.5,ease:'power2.out',delay:.1,clearProps:'all'});
   g0.from('#fab',{scale:0,duration:.5,ease:'back.out(2)',delay:.3,clearProps:'all'});
@@ -4002,25 +4499,28 @@ if(g0&&!document.hidden){
   }); },2500);
 }
 /* APK de Android: alarmas del sistema en vez de avisos del navegador */
-if(NATIVO){
-  nativoIniciar().then(()=>{ startNotifLoop(); });
-  document.addEventListener('visibilitychange',()=>{ if(!document.hidden) nativoProgramar(); });
-} else if('serviceWorker' in navigator && location.protocol.startsWith('http')){
-  /* si se publica una versión nueva, recargar sola una vez
-     (solo si ya había un service worker: en la primera visita no hace falta) */
-  const habiaSW=!!navigator.serviceWorker.controller;
-  let recargando=false;
-  navigator.serviceWorker.addEventListener('controllerchange',()=>{
-    if(!habiaSW||recargando) return; recargando=true; location.reload();
-  });
-  navigator.serviceWorker.addEventListener('message',ev=>{
-    if(ev.data&&ev.data.type==='push-resubscribe') pushSubscribe();
-  });
-  navigator.serviceWorker.register('sw.js')
-    .then(r=>{ swReg=r; r.update().catch(()=>{}); return navigator.serviceWorker.ready; })
-    .then(r=>{ swReg=r||swReg; startNotifLoop(); })
-    .catch(()=>startNotifLoop());
-} else startNotifLoop();
+function arrancarAvisos(){
+  if(NATIVO){
+    nativoIniciar().then(()=>{ startNotifLoop(); });
+    document.addEventListener('visibilitychange',()=>{ if(!document.hidden) nativoProgramar(); });
+  } else if('serviceWorker' in navigator && location.protocol.startsWith('http')){
+    /* si se publica una versión nueva, recargar sola una vez
+       (solo si ya había un service worker: en la primera visita no hace falta) */
+    const habiaSW=!!navigator.serviceWorker.controller;
+    let recargando=false;
+    navigator.serviceWorker.addEventListener('controllerchange',()=>{
+      if(!habiaSW||recargando) return; recargando=true; location.reload();
+    });
+    navigator.serviceWorker.addEventListener('message',ev=>{
+      if(ev.data&&ev.data.type==='push-resubscribe') pushSubscribe();
+    });
+    navigator.serviceWorker.register('sw.js')
+      .then(r=>{ swReg=r; r.update().catch(()=>{}); return navigator.serviceWorker.ready; })
+      .then(r=>{ swReg=r||swReg; startNotifLoop(); })
+      .catch(()=>startNotifLoop());
+  } else startNotifLoop();
+}
+arrancar();
 </script>
 </body>
 </html>
