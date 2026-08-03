@@ -25,6 +25,7 @@ const ARCHIVOS = [
   'onb1.jpg',
   'onb2.jpg',
   'onb3.jpg',
+  'splash-gym.jpg',   // fondo del splash de entrenamiento (lo sube la usuaria)
   'notif_texma.mp3',
   'gsap.min.js',
   'fonts',          // carpeta entera: fonts.css + los .woff2

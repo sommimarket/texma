@@ -143,12 +143,19 @@ h1.vt{font-family:var(--serif);font-style:italic;font-weight:600;font-size:30px;
 .evcard .et{font-weight:700;font-size:14.5px}
 .evcard .es{font-size:12px;color:var(--ink2);margin-top:2px;line-height:1.35}
 /* ---------- entrenamiento y nutrición (v1.4) ---------- */
-.fitsplash{position:relative;border-radius:22px;overflow:hidden;min-height:430px;display:flex;flex-direction:column;justify-content:flex-end;padding:26px 22px;color:#fff;background:linear-gradient(160deg,#221E2E 0%,#3A2F52 48%,#EC1968 135%)}
+.fitsplash{position:relative;border-radius:22px;overflow:hidden;min-height:430px;display:flex;flex-direction:column;justify-content:flex-end;padding:26px 22px;color:#fff;background:linear-gradient(160deg,#16141E 0%,#2A2440 55%,#0E0C14 130%)}
+/* pantalla completa: sin cabecera, sin marcos — solo la foto y el mensaje */
+.fitsplash.full{position:fixed;inset:0;z-index:5;border-radius:0;min-height:0;padding:26px 22px calc(100px + env(safe-area-inset-bottom))}
+body.fitfull #top,body.fitfull #addfab{display:none}
+.fitsplash .bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.fitsplash .shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(14,12,20,.18) 0%,rgba(14,12,20,.5) 45%,rgba(14,12,20,.88) 100%)}
 .fitsplash .bgemoji{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:150px;opacity:.16}
-.fitsplash .k{font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;opacity:.8}
-.fitsplash h2{font-family:var(--serif);font-size:33px;line-height:1.08;margin:8px 0 10px}
-.fitsplash p{font-size:13.5px;opacity:.88;line-height:1.45;margin-bottom:18px}
-.fitsplash .btn{background:#fff;color:#221E2E;border-color:#fff;font-weight:800}
+.fitsplash .k,.fitsplash h2,.fitsplash p,.fitsplash .btn{position:relative}
+.fitsplash .k{font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#C9F532;opacity:.95}
+.fitsplash h2{font-family:var(--serif);font-size:38px;line-height:1.06;margin:8px 0 10px}
+.fitsplash .lime{color:#C9F532;text-shadow:0 0 22px rgba(201,245,50,.45)}
+.fitsplash p{font-size:13.5px;opacity:.9;line-height:1.45;margin-bottom:18px;max-width:420px}
+.fitsplash .btn{background:#C9F53E;color:#14121A;border-color:#C9F53E;font-weight:800}
 .donutw{position:relative;display:flex;justify-content:center;margin:4px 0 0}
 .donutw svg{width:min(250px,78%);height:auto;display:block}
 .donutc{position:absolute;left:0;right:0;bottom:6px;text-align:center}
@@ -203,6 +210,13 @@ h1.vt{font-family:var(--serif);font-style:italic;font-weight:600;font-size:30px;
   color:var(--ink2);padding:9px 6px;border-radius:10px;cursor:pointer;
 }
 .seg button.on{background:var(--paper);color:var(--ink);box-shadow:0 1px 3px rgba(43,38,34,.08)}
+/* toggle chico de la Agenda (Semana ↔ Mes), pegado a la derecha del título.
+   OJO: va por clase y no por style inline — entra() limpia los estilos inline
+   de los .vc al terminar la animación (clearProps) y se los comía. */
+.aghead{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.aghead .vt{margin:0}
+.calseg{width:auto;margin:0;flex:0 0 auto}
+.calseg button{flex:0 0 auto;padding:6px 13px;font-size:12px}
 
 /* ---------- forms ---------- */
 .fld{margin-bottom:13px}
@@ -855,7 +869,7 @@ h1.vt{font-family:var(--serif);font-style:italic;font-weight:600;font-size:30px;
      · package.json y el versionName/versionCode del APK
        (los sincroniza scripts/build-web.mjs en cada npm run sync)
    Al sacar un parche: cambiar el número acá y nada más.        */
-const APP_VER='1.4.0';
+const APP_VER='1.4.1';
 
 /* ---------- utilidades ---------- */
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
@@ -884,7 +898,7 @@ const KEY='texma';
 const DEF={
   settings:{pal:'rosa',name:'',photo:'',banner:'#F2803C',notif:false,customPal:'',cats:{in:[],out:[]},
     onboarded:false,profiled:false,invBanner:'',invTitle:'',
-    invMembers:[{id:'p1',name:'Yo',color:'#EC1968'},{id:'p2',name:'Mi amor',color:'#3B7BD4'}],
+    invMembers:[{id:'p1',name:'Yo',color:'#EC1968'}],   /* la 2ª persona se suma a mano */
     shopCats:[],stockCats:[],cycleOn:true,stockOn:true,
     cycle:{avgCycle:28,avgPeriod:5},
     nSound:'texma',usdRate:1500,
@@ -921,6 +935,13 @@ function migrate(d){
   });
   if(!Array.isArray(s.settings.invMembers)||!s.settings.invMembers.length)
     s.settings.invMembers=JSON.parse(JSON.stringify(DEF.settings.invMembers));
+  /* v1.4.1: la persona 2 ya no viene puesta de fábrica. Si quedó el «Mi amor»
+     del default viejo y nunca aportó nada, se limpia; con aportes se respeta. */
+  if(s.settings.invMembers.length>1){
+    const p2=s.settings.invMembers[1];
+    const usado=s.investments.some(m=>(m.hist||[]).some(h=>h.who===p2.id));
+    if(!usado&&p2.name==='Mi amor') s.settings.invMembers=s.settings.invMembers.slice(0,1);
+  }
   s.investments.forEach(m=>{
     if(m.currency!=='USD') m.currency='ARS';
     m.hist.forEach(h=>{ if(h.who===undefined) h.who=''; }); /* '' = aporte viejo, "juntos" */
@@ -1027,8 +1048,17 @@ function applyTheme(){
   /* en el APK, la barra de estado del celu también acompaña */
   try{
     const SB=window.Capacitor?.Plugins?.StatusBar;
-    if(SB){ SB.setBackgroundColor({color:bc}); SB.setStyle({style:'LIGHT'}); }
+    if(SB){ SB.setBackgroundColor({color:bc}); SB.setStyle({style:sbStyle()}); }
   }catch(e){}
+}
+/* qué estilo le toca a la barra de estado según la cabecera elegida:
+   cabecera oscura → estilo DARK (íconos blancos) · clara → LIGHT (íconos negros).
+   Sin esto, un azul oscuro dejaba reloj y batería negros, ilegibles. */
+function sbStyle(){
+  const h=(bannerColor()||'#F2803C').replace('#','');
+  const r=parseInt(h.slice(0,2),16)||0, g=parseInt(h.slice(2,4),16)||0, b=parseInt(h.slice(4,6),16)||0;
+  const lum=(0.299*r+0.587*g+0.114*b)/255;   /* luminosidad percibida 0–1 */
+  return lum<0.55?'DARK':'LIGHT';
 }
 
 /* ---------- permiso de notificaciones ---------- */
@@ -1171,6 +1201,8 @@ function go(v,fromPop){
     }catch(e){}
   }
   cur=v; navMark();
+  /* el splash de entreno esconde la cabecera; cualquier otra vista la devuelve */
+  document.body.classList.remove('fitfull');
   VIEWS[v].render();
   /* el + de abajo a la derecha agrega lo de ESTA sección */
   $('#addfab').classList.toggle('hide', !VIEWS[v].fab);
@@ -2328,15 +2360,28 @@ VIEWS.cal={
       (recBy[r.nextDue]=recBy[r.nextDue]||[]).push(r);
       if(r.lastPaid) (payBy[r.lastPaid]=payBy[r.lastPaid]||[]).push(r);
     });
-    /* tira horizontal: todos los días del mes, semana a la vista */
+    /* dos vistas del mismo mes: tira horizontal (semana) o grilla completa (mes) */
+    const vista=S.settings.calVista==='mes'?'mes':'semana';
+    const nEv=ds=>(byDate[ds]||[]).length+(recBy[ds]||[]).length+(payBy[ds]||[]).length;
     const strip=[...Array(nDays)].map((_,i)=>{
       const ds=`${calY}-${String(calM+1).padStart(2,'0')}-${String(i+1).padStart(2,'0')}`;
-      const d=pDate(ds);
-      const n=(byDate[ds]||[]).length+(recBy[ds]||[]).length+(payBy[ds]||[]).length;
+      const d=pDate(ds), n=nEv(ds);
       return `<div class="dayc ${ds===calSel?'on':''} ${ds===today?'today':''}" data-day="${ds}">
         <em>${DIA[d.getDay()].slice(0,3)}</em><b>${i+1}</b>
         <div class="dts">${'<i></i>'.repeat(Math.min(n,3))}</div></div>`;
     }).join('');
+    let grid='';
+    if(vista==='mes'){
+      const off=(new Date(calY,calM,1).getDay()+6)%7;
+      let cells='';
+      for(let i=0;i<off;i++) cells+='<div class="cald off"></div>';
+      for(let d=1;d<=nDays;d++){
+        const ds=`${calY}-${String(calM+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        cells+=`<div class="cald ${ds===today?'today':''} ${ds===calSel?'sel':''}" data-day="${ds}">
+          ${d}<div class="dts">${'<i></i>'.repeat(Math.min(nEv(ds),3))}</div></div>`;
+      }
+      grid=`<div class="calgrid">${DL.map(l=>`<div class="caldow">${l}</div>`).join('')}${cells}</div>`;
+    }
     const selEvs=(byDate[calSel]||[]).sort((a,b)=>(a.time||'99').localeCompare(b.time||'99'));
     const selRecs=recBy[calSel]||[], selPays=payBy[calSel]||[];
     const TCOL={cita:'#E5407A',evento:'#F2803C',recordatorio:'#8B6CD9'};
@@ -2357,14 +2402,20 @@ VIEWS.cal={
     const upRec=S.recurring.map(r=>({d:r.nextDue,h:recRow(r,true)}));
     const prox=[...upEv,...upRec].sort((a,b)=>a.d.localeCompare(b.d)).slice(0,8);
     V.innerHTML=`
-      <h1 class="vt vc">Agenda</h1>
-      <div class="vc">
+      <div class="vc aghead">
+        <h1 class="vt">Agenda</h1>
+        <div class="seg calseg">
+          <button data-cv="semana" class="${vista==='semana'?'on':''}">Semana</button>
+          <button data-cv="mes" class="${vista==='mes'?'on':''}">Mes</button>
+        </div>
+      </div>
+      <div class="${vista==='mes'?'card ':''}vc">
         <div class="calhead" style="margin-bottom:8px">
           <button data-nav="-1">‹</button>
           <div class="m">${MES[calM]} ${calY}</div>
           <button data-nav="1">›</button>
         </div>
-        <div class="daystrip" id="dstrip">${strip}</div>
+        ${vista==='mes'?grid:`<div class="daystrip" id="dstrip">${strip}</div>`}
       </div>
       <div class="vc">
         <div class="lbl" style="margin:6px 2px 10px">${fLong(calSel)}</div>
@@ -2376,8 +2427,16 @@ VIEWS.cal={
         ${prox.length?prox.map(x=>x.h).join(''):'<div class="empty">Nada agendado por venir</div>'}
       </div>`;
     /* dejar el día elegido centrado en la tira, sin animación al entrar */
-    const st=V.querySelector('#dstrip'), on=st.querySelector('.dayc.on')||st.querySelector('.dayc.today');
-    if(on) st.scrollLeft=(on.offsetLeft-st.offsetLeft)-st.clientWidth/2+on.clientWidth/2;
+    const st=V.querySelector('#dstrip');
+    if(st){
+      const on=st.querySelector('.dayc.on')||st.querySelector('.dayc.today');
+      if(on) st.scrollLeft=(on.offsetLeft-st.offsetLeft)-st.clientWidth/2+on.clientWidth/2;
+    }
+    V.querySelectorAll('[data-cv]').forEach(b=>b.addEventListener('click',()=>{
+      if(S.settings.calVista===b.dataset.cv) return;
+      S.settings.calVista=b.dataset.cv; save();
+      VIEWS.cal.render(); entra();
+    }));
     V.querySelectorAll('[data-nav]').forEach(b=>b.addEventListener('click',()=>{
       calM+=+b.dataset.nav;
       if(calM<0){calM=11;calY--;} if(calM>11){calM=0;calY++;}
@@ -2858,16 +2917,20 @@ VIEWS.entreno={
   },
   render(){
     const dow=new Date().getDay(), today=hoyISO();
-    /* primera vez: pantalla de bienvenida a pantalla completa */
+    /* primera vez: bienvenida a pantalla COMPLETA — sin cabecera, foto de fondo
+       (splash-gym.jpg en la raíz; si no está, queda el gradiente con la corredora) */
     if(!(S.settings.fit&&S.settings.fit.on)){
+      document.body.classList.add('fitfull');
       V.innerHTML=`
-        <div class="vc"><div class="fitsplash">
+        <div class="fitsplash full">
           <div class="bgemoji">🏃‍♀️</div>
+          <img class="bg" src="splash-gym.jpg" alt="" onerror="this.remove()">
+          <div class="shade"></div>
           <div class="k">Entrenamiento y nutrición</div>
-          <h2>Sin excusas,<br>solo entrená.</h2>
+          <h2>Sin excusas,<br>solo <span class="lime">entrená.</span></h2>
           <p>Contale a TEXMA tu edad, peso y altura, y te calcula las calorías, los macros y el agua de cada día. Después, anotá lo que entrenás y cuidá tu racha 🔥. Todo queda en este celular.</p>
           <button class="btn" id="fitGo">Comenzar ♥</button>
-        </div></div>`;
+        </div>`;
       V.querySelector('#fitGo').addEventListener('click',()=>fitForm());
       return;
     }
@@ -3409,14 +3472,17 @@ function invBannerSheet(){
       <input id="ibT" value="${esc(S.settings.invTitle||'')}" placeholder="Nuestra casa, Mi auto, El viaje…" maxlength="34"></div>
     <button class="btn" id="ibPic">📷 Elegir la imagen</button>
     ${S.settings.invBanner?'<button class="btn ghost" id="ibDel" style="margin-top:10px">Quitar la imagen</button>':''}
-    <div class="lbl" style="margin-top:18px">La pareja · nombres y colores del frasco</div>
+    <div class="lbl" style="margin-top:18px">¿Quién ahorra? · nombre y color del frasco</div>
     ${S.settings.invMembers.map((p,i)=>`
-      <div class="grid2">
+      <div class="grid2" style="position:relative">
         <div class="fld"><label>Persona ${i+1}</label>
           <input class="ibNom" data-i="${i}" value="${esc(p.name)}" maxlength="16" placeholder="Nombre"></div>
         <div class="fld"><label>Color</label>
           <input class="ibCol" data-i="${i}" type="color" value="${p.color}" style="height:44px;padding:4px;cursor:pointer"></div>
+        ${i>0?`<button class="btn sm danger" data-quitar="${p.id}" style="position:absolute;top:-4px;right:0">✕</button>`:''}
       </div>`).join('')}
+    ${S.settings.invMembers.length<2?`<button class="btn ghost" id="ibMas" style="margin-bottom:6px">＋ Añadir a otra persona</button>
+      <div class="s muted" style="margin:-2px 0 10px;font-size:11.5px">Si ahorrás en pareja, acá se suma. Con una sola persona, el frasco es todo tuyo.</div>`:''}
     <div class="btnrow"><button class="btn primary" data-ok>Guardar</button></div>
     <div class="s muted" style="margin-top:10px;font-size:11.5px;text-align:center">
       La imagen se guarda achicada en este celular, como las fotos de costura.</div>`);
@@ -3433,6 +3499,18 @@ function invBannerSheet(){
   b.querySelector('#ibDel')?.addEventListener('click',()=>{
     S.settings.invBanner=''; save(); closeSheet(); go('inv'); toast('Imagen quitada');
   });
+  /* sumar a la segunda persona: aparece recién cuando la usuaria lo pide */
+  b.querySelector('#ibMas')?.addEventListener('click',()=>{
+    S.settings.invMembers.push({id:'p'+(S.settings.invMembers.length+1),name:'',color:'#3B7BD4'});
+    save(); invBannerSheet();   /* el sheet se redibuja con los campos nuevos */
+  });
+  b.querySelectorAll('[data-quitar]').forEach(bt=>bt.addEventListener('click',()=>{
+    const id=bt.dataset.quitar;
+    const conAportes=S.investments.some(m=>(m.hist||[]).some(h=>h.who===id));
+    if(conAportes) return toast('Esa persona tiene aportes cargados — no se puede quitar');
+    S.settings.invMembers=S.settings.invMembers.filter(p=>p.id!==id);
+    save(); invBannerSheet(); toast('Persona quitada');
+  }));
   b.querySelector('[data-ok]').addEventListener('click',()=>{
     S.settings.invTitle=b.querySelector('#ibT').value.trim();
     b.querySelectorAll('.ibNom').forEach(i=>{
@@ -3565,12 +3643,14 @@ function aporteForm(id,ap){
   const m=S.investments.find(x=>x.id===id); if(!m) return;
   const a=ap||{amount:'',date:hoyISO(),note:'',who:(S.settings.invMembers[0]||{}).id||''};
   const mem=S.settings.invMembers||[];
+  /* con una sola persona no hay nada que preguntar: todo el frasco es de ella */
+  const sola=mem.length<2;
   const b=sheet(ap?'Editar aporte':'Nuevo aporte',`
-    <div class="fld"><label>¿Quién aporta?</label>
+    ${sola?'':`<div class="fld"><label>¿Quién aporta?</label>
       <div class="chips cWho">${mem.map(p=>`<div class="chip ${a.who===p.id?'on':''}" data-val="${p.id}">
         <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${p.color};margin-right:5px"></span>${esc(p.name)}</div>`).join('')}
         <div class="chip ${!a.who?'on':''}" data-val="">Juntos</div>
-      </div></div>
+      </div></div>`}
     <div class="grid2">
       <div class="fld"><label>Monto · ${m.currency==='USD'?'US$':'$'}</label>
         <input id="aA" type="number" inputmode="decimal" step="0.01" value="${a.amount}" placeholder="0"></div>
@@ -3579,12 +3659,12 @@ function aporteForm(id,ap){
     <div class="fld"><label>Detalle</label><input id="aN" value="${esc(a.note||'')}" placeholder="Opcional"></div>
     <div class="s muted" style="font-size:11.5px">Poné un monto negativo si sacaste plata de esta meta.</div>
     <div class="btnrow">${ap?delBtn():''}<button class="btn primary" data-ok>Guardar</button></div>`);
-  chipsWire(b,'.cWho',true);
+  if(!sola) chipsWire(b,'.cWho',true);
   b.querySelector('[data-ok]').addEventListener('click',()=>{
     const amount=+b.querySelector('#aA').value;
     if(!amount) return toast('Falta el monto');
     const data={amount,date:b.querySelector('#aD').value||hoyISO(),note:b.querySelector('#aN').value.trim(),
-      who:chipsVals(b,'.cWho')[0]||''};
+      who:sola?(mem[0]||{}).id||'':chipsVals(b,'.cWho')[0]||''};
     const yaEstaba=invMath(m).listo;          /* ANTES de tocar nada */
     if(ap) Object.assign(ap,data); else m.hist.push({id:uid(),...data});
     const reciEn=!yaEstaba&&invMath(m).listo; /* recién ahora llegó */
@@ -4293,7 +4373,7 @@ async function nativoIniciar(){
     });
   }catch(e){}
   const SB=plug('StatusBar');
-  if(SB){ try{ SB.setBackgroundColor({color:bannerColor()}); SB.setStyle({style:'LIGHT'}); }catch(e){} }
+  if(SB){ try{ SB.setBackgroundColor({color:bannerColor()}); SB.setStyle({style:sbStyle()}); }catch(e){} }
 }
 
 async function nativoPermiso(){
