@@ -116,9 +116,38 @@ create policy "apps lectura publica"
 tenga la anon key — que es pública por diseño. No pongas datos privados en esa
 tabla. `licencias` y `devices` quedan sin políticas, o sea inaccesibles.
 
-### 3.2 Publicar una versión
+### 3.2 Publicar una versión (automático · scripts/deploy.mjs)
 
-Cada vez que saques un parche, después de compilar y subir el APK:
+Ya no hace falta subir el APK a mano ni tocar la tabla: hay un script que hace
+todo desde la terminal.
+
+**Preparación (una sola vez):**
+
+1. **El bucket.** Supabase → Storage → *New bucket*:
+   - Nombre: `apks`
+   - **Public bucket: SÍ** (el celular baja el APK con un link directo, sin token)
+   - (Opcional) *Allowed MIME types*: `application/vnd.android.package-archive`
+   Con el bucket público, la lectura ya funciona sin políticas. Escribir solo
+   puede la service_role (el script); la anon key no puede subir nada.
+
+2. **Las credenciales.** En la raíz del repo, copiar `.env.example` como `.env`
+   y completar `SUPABASE_URL` y `SUPABASE_SERVICE_ROLE` (Project Settings → API).
+   El `.env` está en el `.gitignore`: la service_role saltea el RLS y jamás
+   puede terminar en el repo ni adentro de una app.
+
+**Cada parche:**
+
+```bash
+npm run apk                              # compila el release
+node scripts/deploy.mjs texma 1.4.0      # sube el APK y publica
+```
+
+El script sube el APK a `apks/texma/TEXMA-1.4.0.apk`, saca el link público y
+hace el `update` de `version` + `url_descarga` en la fila `texma`. Sirve para
+las apps que vengan: `node scripts/deploy.mjs otraapp 2.0.0 ruta/al.apk`
+(la fila en `apps` tiene que existir de antes).
+
+A mano sería el equivalente de:
 
 ```sql
 update apps
@@ -126,6 +155,13 @@ update apps
        url_descarga = 'https://…/TEXMA-1.2.1.apk'
  where id = 'texma';
 ```
+
+### 3.2b El cartel se vuelve obligatorio a los 5 días
+
+La app guarda la fecha del primer aviso de cada versión. Los primeros 5 días el
+cartel tiene «Actualizar ahora» y «Después»; pasado el plazo, desaparece el
+«Después» y el cartel vuelve a aparecer hasta que instale el APK nuevo. Si la
+fila no tiene `url_descarga`, nunca se fuerza nada (no habría qué descargar).
 
 ### 3.3 Enchufar la app
 

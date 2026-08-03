@@ -1,5 +1,7 @@
 /* TEXMA · service worker · cache-first para funcionar 100% offline */
-const CACHE = 'texma-v14';
+/* subir este nombre en cada versión: si no, el cache-first sigue sirviendo
+   la TEXMA vieja y los cambios nuevos no se ven en la web/PWA */
+const CACHE = 'texma-v14-2';
 const PRECACHE = [
   './',
   './index.html',

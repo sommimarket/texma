@@ -24,3 +24,11 @@ android/capacitor-cordova-android-plugins/
 *.keystore
 *.jks
 android/keystore.properties
+
+# credenciales de deploy (service_role) — JAMAS al repo
+.env
+
+# firma del APK de produccion — el keystore y sus claves JAMAS al repo
+android/keystore.properties
+*.keystore
+*.jks

@@ -4,170 +4,321 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="only light">
-<title>TEXMA · Panel de ventas</title>
+<title>Maxing Agent · Panel</title>
 <style>
 :root{color-scheme:only light;
-  --paper:#FAF7F1;--linen:#F3EEE5;--ink:#2B2622;--ink2:#75695C;--line:#E4DCCD;--deep:#EC1968;--tint:#FBD9E6}
+  --bg:#F5F3EE;          /* fondo del area principal */
+  --side:#221E1A;        /* sidebar solido */
+  --side2:#B4A99B;       /* texto secundario del sidebar */
+  --card:#FFFFFF;
+  --ink:#2B2622;--ink2:#75695C;--line:#E8E2D6;
+  --deep:#EC1968;--tint:#FBD9E6;
+  --ok-bg:#E3F2E9;--ok-tx:#1F6B47;
+  --warn-bg:#FBF0D5;--warn-tx:#8A6410;
+  --bad-bg:#FBE2DC;--bad-tx:#9C3B2E;
+  --r:16px;
+  --shadow:0 1px 2px rgba(43,38,34,.04),0 4px 14px rgba(43,38,34,.05)}
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--linen);color:var(--ink);font-family:Manrope,system-ui,sans-serif;font-size:15px;line-height:1.45}
-.wrap{max-width:860px;margin:0 auto;padding:24px 16px 70px}
-h1{font-family:Georgia,serif;font-style:italic;font-size:30px;margin-bottom:4px}
-.sub{color:var(--ink2);font-size:13px;margin-bottom:18px}
-.card{background:var(--paper);border:1px solid var(--line);border-radius:20px;padding:18px;margin-bottom:14px}
-.lbl{font-size:10px;letter-spacing:1.6px;text-transform:uppercase;color:var(--ink2);margin-bottom:10px}
-label.f{display:block;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--ink2);margin:0 0 5px}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:Manrope,system-ui,sans-serif;font-size:15px;line-height:1.45}
 input,button{font:inherit}
-input{width:100%;padding:12px 14px;border-radius:13px;border:1px solid var(--line);background:var(--linen);color:var(--ink);outline:none;margin-bottom:12px}
-input:focus{border-color:var(--deep)}
+.hide{display:none!important}
+
+/* ============ LOGIN (columna centrada, como antes pero con cards nuevas) ============ */
+#scLogin{max-width:440px;margin:0 auto;padding:48px 16px 70px}
+#scLogin h1{font-family:Georgia,serif;font-style:italic;font-size:28px;margin-bottom:4px}
+#scLogin .sub{color:var(--ink2);font-size:13px;margin-bottom:20px}
+
+/* ============ SHELL DEL DASHBOARD ============ */
+#scPanel{display:flex;min-height:100vh}
+
+/* --- sidebar --- */
+.side{width:232px;flex:0 0 232px;background:var(--side);color:#fff;
+  display:flex;flex-direction:column;padding:22px 14px;position:sticky;top:0;height:100vh}
+.brand{display:flex;align-items:center;gap:10px;padding:0 10px 22px}
+.brand .dot{width:32px;height:32px;border-radius:10px;background:var(--deep);
+  display:grid;place-items:center;font-weight:800;font-size:15px;color:#fff}
+.brand b{font-size:15px;letter-spacing:.2px}
+.brand span{display:block;font-size:10px;color:var(--side2);letter-spacing:1.4px;text-transform:uppercase}
+.nav{display:flex;flex-direction:column;gap:2px;flex:1}
+.nav button{display:flex;align-items:center;gap:11px;width:100%;text-align:left;
+  background:transparent;border:none;color:var(--side2);cursor:pointer;
+  padding:10px 12px;border-radius:11px;font-size:13.5px;font-weight:600}
+.nav button .ic{width:18px;text-align:center;font-size:15px}
+.nav button:hover{color:#fff;background:rgba(255,255,255,.06)}
+.nav button.on{color:#fff;background:rgba(255,255,255,.11);position:relative}
+.nav button.on::before{content:"";position:absolute;left:-14px;top:8px;bottom:8px;width:3px;
+  border-radius:0 3px 3px 0;background:var(--deep)}
+.me{border-top:1px solid rgba(255,255,255,.1);padding-top:14px;margin-top:14px;
+  display:flex;align-items:center;gap:10px;padding-left:6px;padding-right:6px}
+.me .av{width:34px;height:34px;border-radius:50%;background:var(--tint);color:#A61048;
+  display:grid;place-items:center;font-weight:800;font-size:14px;flex:0 0 34px}
+.me .who{flex:1;min-width:0}
+.me .who b{display:block;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.me .who span{font-size:10.5px;color:var(--side2)}
+.me .out{background:transparent;border:1px solid rgba(255,255,255,.18);color:var(--side2);
+  width:30px;height:30px;border-radius:9px;cursor:pointer;font-size:13px;line-height:1}
+.me .out:hover{color:#fff;border-color:rgba(255,255,255,.4)}
+
+/* --- area principal --- */
+.main{flex:1;min-width:0;padding:26px 30px 70px}
+.main h2{font-family:Georgia,serif;font-style:italic;font-size:24px;margin-bottom:2px}
+.main .crumb{color:var(--ink2);font-size:12.5px;margin-bottom:22px}
+
+/* --- cards --- */
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+  padding:20px;margin-bottom:16px;box-shadow:var(--shadow)}
+.lbl{font-size:10px;letter-spacing:1.6px;text-transform:uppercase;color:var(--ink2);margin-bottom:12px}
+
+/* --- KPIs: tarjetas blancas individuales --- */
+.kpi{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:16px}
+.kpi>div{background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+  padding:18px 20px;box-shadow:var(--shadow)}
+.kpi .kl{font-size:10px;letter-spacing:1.4px;text-transform:uppercase;color:var(--ink2)}
+.kpi .kv{font-size:30px;font-weight:800;margin-top:6px;letter-spacing:-.5px}
+.kpi .kh{font-size:11px;color:var(--ink2);margin-top:4px}
+
+/* --- formularios --- */
+label.f{display:block;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--ink2);margin:0 0 6px}
+input{width:100%;padding:12px 14px;border-radius:11px;border:1px solid var(--line);
+  background:#FCFBF8;color:var(--ink);outline:none;margin-bottom:14px}
+input:focus{border-color:var(--deep);box-shadow:0 0 0 3px var(--tint)}
+.hint{color:var(--ink2);font-size:12px;line-height:1.5;margin-top:-6px;margin-bottom:14px}
+button.b{background:var(--deep);color:#fff;border:none;padding:12px 22px;border-radius:11px;
+  cursor:pointer;font-weight:700;box-shadow:0 3px 10px rgba(236,25,104,.25)}
+button.b:hover{filter:brightness(1.06)}
+button.b:disabled{opacity:.5;cursor:default;box-shadow:none}
+button.g{background:#fff;color:var(--ink);border:1px solid var(--line);padding:7px 12px;
+  font-size:12px;font-weight:600;border-radius:9px;cursor:pointer}
+button.g:hover{border-color:var(--ink2)}
+button.g+button.g{margin-left:5px}
 .pw{position:relative}
 .pw input{padding-right:48px}
-.pw .eye{position:absolute;right:6px;top:4px;width:38px;height:38px;border:none;background:transparent;cursor:pointer;font-size:17px;line-height:1;color:var(--ink2);padding:0}
-button.b{background:var(--deep);color:#fff;border:none;padding:12px 20px;border-radius:13px;cursor:pointer;font-weight:700}
-button.b:disabled{opacity:.5;cursor:default}
-button.g{background:transparent;color:var(--ink);border:1px solid var(--line);padding:7px 12px;font-size:12px;font-weight:600;border-radius:10px;cursor:pointer}
-button.g+button.g{margin-left:5px}
-.kpi{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-.kpi div{background:var(--linen);border:1px solid var(--line);border-radius:15px;padding:12px 14px}
-.kpi .kl{font-size:9px;letter-spacing:1.2px;text-transform:uppercase;color:var(--ink2)}
-.kpi .kv{font-size:20px;font-weight:800;margin-top:3px}
+.pw .eye{position:absolute;right:6px;top:4px;width:38px;height:38px;border:none;background:transparent;
+  cursor:pointer;font-size:17px;line-height:1;color:var(--ink2);padding:0}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}
+.grid2 .full{grid-column:1/-1}
+
+/* --- tabla --- */
 table{width:100%;border-collapse:collapse;font-size:13px}
-th,td{text-align:left;padding:10px 6px;border-bottom:1px solid var(--line);vertical-align:top}
-th{font-size:9px;letter-spacing:1.2px;text-transform:uppercase;color:var(--ink2)}
-code{font-family:ui-monospace,monospace;font-size:12px;background:var(--tint);padding:2px 6px;border-radius:6px}
-.ok{color:#2E7D5B;font-weight:700}.no{color:#9C3B2E;font-weight:700}
+th,td{text-align:left;padding:12px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:#FAF8F3}
+th{font-size:9.5px;letter-spacing:1.3px;text-transform:uppercase;color:var(--ink2);
+  border-bottom:1px solid var(--line);background:#FCFBF8}
+code{font-family:ui-monospace,monospace;font-size:12px;background:var(--tint);padding:2px 7px;border-radius:6px}
+
+/* --- badges de estado --- */
+.bdg{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;
+  padding:4px 11px;border-radius:99px;white-space:nowrap}
+.bdg.ok{background:var(--ok-bg);color:var(--ok-tx)}
+.bdg.warn{background:var(--warn-bg);color:var(--warn-tx)}
+.bdg.bad{background:var(--bad-bg);color:var(--bad-tx)}
 .pill{font-size:9px;letter-spacing:1px;text-transform:uppercase;background:var(--tint);color:#A61048;padding:3px 9px;border-radius:99px}
-.link{word-break:break-all;font-family:ui-monospace,monospace;font-size:12px;background:var(--linen);border:1px dashed var(--line);border-radius:12px;padding:12px;margin-top:10px;line-height:1.6}
-.err{color:#9C3B2E;font-size:13px;margin-top:4px;min-height:18px}
-.hint{color:var(--ink2);font-size:12px;line-height:1.5;margin-top:-4px;margin-bottom:12px}
-.top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:18px}
-.hide{display:none}
+
+.link{word-break:break-all;font-family:ui-monospace,monospace;font-size:12px;background:#FCFBF8;
+  border:1px dashed var(--line);border-radius:12px;padding:12px;margin-top:12px;line-height:1.6}
+.err{color:#9C3B2E;font-size:13px;margin-top:6px;min-height:18px}
+
+/* --- responsive: sidebar arriba en pantallas chicas --- */
+@media (max-width:820px){
+  #scPanel{flex-direction:column}
+  .side{width:100%;flex:none;height:auto;position:static;flex-direction:row;align-items:center;
+    padding:12px 14px;gap:8px;flex-wrap:wrap}
+  .brand{padding:0 8px 0 0}
+  .brand span{display:none}
+  .nav{flex-direction:row;flex:1;overflow-x:auto}
+  .nav button{white-space:nowrap;padding:8px 12px}
+  .nav button.on::before{display:none}
+  .me{border-top:none;padding-top:0;margin-top:0}
+  .me .who{display:none}
+  .main{padding:20px 16px 70px}
+  .kpi{grid-template-columns:1fr}
+  .grid2{grid-template-columns:1fr}
+}
 </style>
 </head>
 <body>
-<div class="wrap">
 
-  <!-- ============ ENTRAR ============ -->
-  <div id="scLogin">
-    <h1>TEXMA · ventas</h1>
-    <div class="sub" id="loginSub">Entrá con tu usuario y contraseña.</div>
+<!-- ============ ENTRAR ============ -->
+<div id="scLogin">
+  <h1>Maxing Agent</h1>
+  <div class="sub" id="loginSub">Entrá con tu usuario y contraseña.</div>
 
-    <div class="card">
-      <label class="f">Dirección del servidor</label>
-      <input id="api" placeholder="https://texma-lic.tu-cuenta.workers.dev">
-      <div class="hint">Es la URL que te dio Cloudflare al publicar el Worker. Se escribe una sola vez.</div>
-      <button class="b" id="conectar">Conectar</button>
-      <div class="err" id="errApi"></div>
-    </div>
-
-    <!-- primera vez: crear la cuenta de dueño -->
-    <div class="card hide" id="cardSetup">
-      <div class="lbl">Primera vez · creá tu cuenta</div>
-      <div class="hint">No hay ninguna cuenta todavía. La que crees acá es la de dueño: podés invitar a otras personas después.</div>
-      <label class="f">Tu nombre</label>
-      <input id="sNom" placeholder="Lucas">
-      <label class="f">Usuario</label>
-      <input id="sUser" placeholder="lucas" autocomplete="username">
-      <label class="f">Contraseña · mínimo 8 caracteres</label>
-      <div class="pw">
-        <input id="sPass" type="password" placeholder="••••••••" autocomplete="new-password">
-        <button class="eye" data-eye="sPass" type="button" title="Ver contraseña">👁</button>
-      </div>
-      <button class="b" id="crear">Crear mi cuenta</button>
-      <div class="err" id="errSetup"></div>
-    </div>
-
-    <!-- login normal -->
-    <div class="card hide" id="cardLogin">
-      <div class="lbl">Entrar</div>
-      <label class="f">Usuario</label>
-      <input id="lUser" placeholder="lucas" autocomplete="username">
-      <label class="f">Contraseña</label>
-      <div class="pw">
-        <input id="lPass" type="password" placeholder="••••••••" autocomplete="current-password">
-        <button class="eye" data-eye="lPass" type="button" title="Ver contraseña">👁</button>
-      </div>
-      <label style="display:block;font-size:12px;color:var(--ink2);margin:0 0 12px">
-        <input type="checkbox" id="rec" style="width:auto;margin:0 6px 0 0"> No cerrar sesión en esta compu
-      </label>
-      <button class="b" id="entrar">Entrar</button>
-      <div class="err" id="errLogin"></div>
-    </div>
+  <div class="card">
+    <label class="f">Dirección del servidor</label>
+    <input id="api" placeholder="https://texma-lic.tu-cuenta.workers.dev">
+    <div class="hint">Es la URL que te dio Cloudflare al publicar el Worker. Se escribe una sola vez.</div>
+    <button class="b" id="conectar">Conectar</button>
+    <div class="err" id="errApi"></div>
   </div>
 
-  <!-- ============ PANEL ============ -->
-  <div id="scPanel" class="hide">
-    <div class="top">
-      <div>
-        <h1>TEXMA · ventas</h1>
-        <div class="sub" id="quien" style="margin:0"></div>
-      </div>
-      <button class="g" id="salir">Salir</button>
+  <!-- primera vez: crear la cuenta de dueño -->
+  <div class="card hide" id="cardSetup">
+    <div class="lbl">Primera vez · creá tu cuenta</div>
+    <div class="hint">No hay ninguna cuenta todavía. La que crees acá es la de dueño: podés invitar a otras personas después.</div>
+    <label class="f">Tu nombre</label>
+    <input id="sNom" placeholder="Lucas">
+    <label class="f">Usuario</label>
+    <input id="sUser" placeholder="lucas" autocomplete="username">
+    <label class="f">Contraseña · mínimo 8 caracteres</label>
+    <div class="pw">
+      <input id="sPass" type="password" placeholder="••••••••" autocomplete="new-password">
+      <button class="eye" data-eye="sPass" type="button" title="Ver contraseña">👁</button>
     </div>
+    <button class="b" id="crear">Crear mi cuenta</button>
+    <div class="err" id="errSetup"></div>
+  </div>
 
-    <div class="card">
-      <div class="lbl">Resumen</div>
+  <!-- login normal -->
+  <div class="card hide" id="cardLogin">
+    <div class="lbl">Entrar</div>
+    <label class="f">Usuario</label>
+    <input id="lUser" placeholder="lucas" autocomplete="username">
+    <label class="f">Contraseña</label>
+    <div class="pw">
+      <input id="lPass" type="password" placeholder="••••••••" autocomplete="current-password">
+      <button class="eye" data-eye="lPass" type="button" title="Ver contraseña">👁</button>
+    </div>
+    <label style="display:block;font-size:12px;color:var(--ink2);margin:0 0 12px">
+      <input type="checkbox" id="rec" style="width:auto;margin:0 6px 0 0"> No cerrar sesión en esta compu
+    </label>
+    <button class="b" id="entrar">Entrar</button>
+    <div class="err" id="errLogin"></div>
+  </div>
+</div>
+
+<!-- ============ DASHBOARD ============ -->
+<div id="scPanel" class="hide">
+
+  <!-- sidebar -->
+  <aside class="side">
+    <div class="brand">
+      <div class="dot">M</div>
+      <div><b>Maxing Agent</b><span>Panel de ventas</span></div>
+    </div>
+    <nav class="nav" id="nav">
+      <button class="on" data-sec="secResumen"><span class="ic">◧</span> Resumen</button>
+      <button data-sec="secLic"><span class="ic">⚿</span> Licencias</button>
+      <button data-sec="secEquipo" id="navEquipo" class="hide"><span class="ic">☺</span> Equipo</button>
+      <button data-sec="secAjustes"><span class="ic">⚙</span> Ajustes</button>
+    </nav>
+    <div class="me">
+      <div class="av" id="meAv">·</div>
+      <div class="who"><b id="meNom">—</b><span id="meRol"></span></div>
+      <button class="out" id="salir" title="Salir">⏻</button>
+    </div>
+  </aside>
+
+  <!-- contenido -->
+  <div class="main">
+
+    <!-- ===== RESUMEN ===== -->
+    <section id="secResumen">
+      <h2>Resumen</h2>
+      <div class="crumb" id="quien"></div>
       <div class="kpi">
-        <div><div class="kl">Vendidas</div><div class="kv" id="kT">—</div></div>
-        <div><div class="kl">Activadas</div><div class="kv" id="kA">—</div></div>
-        <div><div class="kl">Facturado</div><div class="kv" id="kF">—</div></div>
+        <div><div class="kl">Vendidas</div><div class="kv" id="kT">—</div><div class="kh">licencias emitidas</div></div>
+        <div><div class="kl">Activadas</div><div class="kv" id="kA">—</div><div class="kh">en uso hoy</div></div>
+        <div><div class="kl">Facturado</div><div class="kv" id="kF">—</div><div class="kh">total histórico</div></div>
       </div>
-      <div id="porV" style="margin-top:14px"></div>
-    </div>
-
-    <div class="card">
-      <div class="lbl">Nueva venta</div>
-      <label class="f">Nombre de la clienta</label>
-      <input id="nNom" placeholder="Ana Gómez">
-      <label class="f">WhatsApp o mail</label>
-      <input id="nCon" placeholder="11 5555-2211">
-      <label class="f">Precio</label>
-      <input id="nPre" type="number" value="30000">
-      <button class="b" id="nGo">Generar link único</button>
-      <div class="link hide" id="nOut"></div>
-      <div class="err" id="errNueva"></div>
-    </div>
-
-    <div class="card">
-      <div class="lbl">Licencias</div>
-      <div style="overflow-x:auto">
-        <table><thead><tr><th>Código</th><th>Clienta</th><th>Estado</th><th>Vendió</th><th>Precio</th><th></th></tr></thead>
-        <tbody id="tb"></tbody></table>
+      <div class="card hide" id="cardPorV">
+        <div class="lbl">Por vendedor</div>
+        <div id="porV" style="overflow-x:auto"></div>
       </div>
-    </div>
+    </section>
 
-    <div class="card hide" id="cardUsers">
-      <div class="lbl">Quién puede entrar</div>
-      <div style="overflow-x:auto"><table>
-        <thead><tr><th>Usuario</th><th>Nombre</th><th>Rol</th><th>Última entrada</th><th></th></tr></thead>
-        <tbody id="tbU"></tbody></table></div>
-      <div style="border-top:1px solid var(--line);margin-top:16px;padding-top:16px">
+    <!-- ===== LICENCIAS ===== -->
+    <section id="secLic" class="hide">
+      <h2>Licencias</h2>
+      <div class="crumb">Vendé, activá y administrá las licencias de TEXMA.</div>
+
+      <div class="card">
+        <div class="lbl">Nueva venta</div>
+        <div class="grid2">
+          <div>
+            <label class="f">Nombre de la clienta</label>
+            <input id="nNom" placeholder="Ana Gómez">
+          </div>
+          <div>
+            <label class="f">WhatsApp o mail</label>
+            <input id="nCon" placeholder="11 5555-2211">
+          </div>
+          <div>
+            <label class="f">Precio</label>
+            <input id="nPre" type="number" value="30000">
+          </div>
+          <div style="align-self:end">
+            <button class="b" id="nGo" style="margin-bottom:14px">Generar link único</button>
+          </div>
+        </div>
+        <div class="link hide" id="nOut"></div>
+        <div class="err" id="errNueva"></div>
+      </div>
+
+      <div class="card">
+        <div class="lbl">Todas las licencias</div>
+        <div style="overflow-x:auto">
+          <table><thead><tr><th>Código</th><th>Clienta</th><th>Estado</th><th>Vendió</th><th>Precio</th><th></th></tr></thead>
+          <tbody id="tb"></tbody></table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== EQUIPO (solo dueño) ===== -->
+    <section id="secEquipo" class="hide">
+      <h2>Equipo</h2>
+      <div class="crumb">Quién puede entrar a este panel.</div>
+
+      <div class="card">
+        <div class="lbl">Cuentas</div>
+        <div style="overflow-x:auto"><table>
+          <thead><tr><th>Usuario</th><th>Nombre</th><th>Rol</th><th>Última entrada</th><th></th></tr></thead>
+          <tbody id="tbU"></tbody></table></div>
+      </div>
+
+      <div class="card">
         <div class="lbl">Invitar a alguien</div>
         <div class="hint">Le creás la cuenta vos y le pasás el usuario y la contraseña. Después ella puede cambiarla.</div>
-        <label class="f">Nombre</label>
-        <input id="uNom" placeholder="Melu">
-        <label class="f">Usuario</label>
-        <input id="uUser" placeholder="melu">
-        <label class="f">Contraseña · mínimo 8 caracteres</label>
-        <div class="pw">
-          <input id="uPass" type="password" placeholder="••••••••">
-          <button class="eye" data-eye="uPass" type="button" title="Ver contraseña">👁</button>
+        <div class="grid2">
+          <div>
+            <label class="f">Nombre</label>
+            <input id="uNom" placeholder="Melu">
+          </div>
+          <div>
+            <label class="f">Usuario</label>
+            <input id="uUser" placeholder="melu">
+          </div>
+          <div class="full">
+            <label class="f">Contraseña · mínimo 8 caracteres</label>
+            <div class="pw">
+              <input id="uPass" type="password" placeholder="••••••••">
+              <button class="eye" data-eye="uPass" type="button" title="Ver contraseña">👁</button>
+            </div>
+          </div>
         </div>
         <button class="b" id="uGo">Crear cuenta</button>
         <button class="g" id="uGen" style="margin-left:6px">Sugerir contraseña</button>
         <div class="err" id="errUser"></div>
       </div>
-    </div>
+    </section>
 
-    <div class="card">
-      <div class="lbl">Mi contraseña</div>
-      <label class="f">Contraseña nueva · mínimo 8 caracteres</label>
-      <div class="pw">
-        <input id="mPass" type="password" placeholder="••••••••">
-        <button class="eye" data-eye="mPass" type="button" title="Ver contraseña">👁</button>
+    <!-- ===== AJUSTES ===== -->
+    <section id="secAjustes" class="hide">
+      <h2>Ajustes</h2>
+      <div class="crumb">Tu cuenta.</div>
+      <div class="card" style="max-width:440px">
+        <div class="lbl">Mi contraseña</div>
+        <label class="f">Contraseña nueva · mínimo 8 caracteres</label>
+        <div class="pw">
+          <input id="mPass" type="password" placeholder="••••••••">
+          <button class="eye" data-eye="mPass" type="button" title="Ver contraseña">👁</button>
+        </div>
+        <button class="b" id="mGo">Cambiar mi contraseña</button>
+        <div class="err" id="errMi"></div>
       </div>
-      <button class="b" id="mGo">Cambiar mi contraseña</button>
-      <div class="err" id="errMi"></div>
-    </div>
+    </section>
+
   </div>
 </div>
 
@@ -175,6 +326,13 @@ code{font-family:ui-monospace,monospace;font-size:12px;background:var(--tint);pa
 const $=s=>document.querySelector(s);
 const show=(el,on)=>$(el).classList.toggle('hide',!on);
 let API='', TOKEN='', YO=null;
+
+/* navegacion del sidebar */
+document.querySelectorAll('#nav button').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('#nav button').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on');
+  ['secResumen','secLic','secEquipo','secAjustes'].forEach(id=>show('#'+id,id===b.dataset.sec));
+}));
 
 /* ojito de las contraseñas */
 document.querySelectorAll('[data-eye]').forEach(b=>b.addEventListener('click',()=>{
@@ -249,14 +407,25 @@ async function entrarAlPanel(){
   show('#scLogin',false); show('#scPanel',true);
   await lista();
 }
+function badgeEstado(l){
+  if(l.revoked) return '<span class="bdg bad">Revocada</span>';
+  if(l.device)  return '<span class="bdg ok">Activada</span><br><span style="font-size:10px;color:#75695C">'
+                   +new Date(l.activatedAt).toLocaleDateString('es-AR')+'</span>';
+  return '<span class="bdg warn">Pendiente</span>';
+}
 async function lista(){
   const d=await call('/admin/lista');
   YO=d.yo;
-  $('#quien').textContent=`Hola, ${d.yo.nombre} · ${d.yo.role==='owner'?'dueña/o':'vendedora/or'}`;
+  const rol=d.yo.role==='owner'?'dueña/o':'vendedora/or';
+  $('#quien').textContent=`Hola, ${d.yo.nombre} · ${rol}`;
+  $('#meNom').textContent=d.yo.nombre;
+  $('#meRol').textContent=rol;
+  $('#meAv').textContent=(d.yo.nombre||'?').trim().charAt(0).toUpperCase();
   $('#kT').textContent=d.total;
   $('#kA').textContent=d.activadas;
   $('#kF').textContent='$ '+Number(d.facturado).toLocaleString('es-AR');
   const pv=Object.entries(d.porVendedor||{});
+  show('#cardPorV',pv.length>1);
   $('#porV').innerHTML=pv.length>1
     ?'<table><thead><tr><th>Vendedor</th><th>Vendidas</th><th>Activadas</th><th>Facturado</th></tr></thead><tbody>'
       +pv.map(([n,x])=>`<tr><td>${n}</td><td>${x.vendidas}</td><td>${x.activadas}</td><td>$ ${Number(x.facturado).toLocaleString('es-AR')}</td></tr>`).join('')
@@ -264,9 +433,7 @@ async function lista(){
   $('#tb').innerHTML=d.licencias.length?d.licencias.map(l=>`<tr>
     <td><code>${l.code}</code></td>
     <td>${l.nombre||'—'}<br><span style="color:#75695C;font-size:11px">${l.contacto||''}</span></td>
-    <td>${l.revoked?'<span class="no">dada de baja</span>'
-      :l.device?'<span class="ok">activada</span><br><span style="font-size:10px;color:#75695C">'+new Date(l.activatedAt).toLocaleDateString('es-AR')+'</span>'
-      :'sin usar'}</td>
+    <td>${badgeEstado(l)}</td>
     <td>${l.vendedor||'—'}</td>
     <td>$ ${Number(l.precio||0).toLocaleString('es-AR')}</td>
     <td style="white-space:nowrap"><button class="g" data-r="${l.code}">Liberar celu</button>
@@ -279,7 +446,7 @@ async function lista(){
   document.querySelectorAll('[data-x]').forEach(b=>b.onclick=async()=>{
     await call('/admin/revocar',{code:b.dataset.x}); lista();
   });
-  show('#cardUsers',d.yo.role==='owner');
+  show('#navEquipo',d.yo.role==='owner');
   if(d.yo.role==='owner') usuarios();
 }
 
