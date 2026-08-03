@@ -197,18 +197,23 @@ body.fitfull #top,body.fitfull #addfab{display:none}
 #updv .ufoot{font-size:11.5px;color:var(--ink2);margin-top:14px}
 #updv .btn{margin-top:14px}
 /* ---------- bienvenida después de activar la licencia (v1.4.2) ---------- */
-#wel{position:fixed;inset:0;z-index:125;background:var(--linen);overflow-y:auto;display:flex;flex-direction:column}
-#wel .wimg{position:relative;height:44vh;min-height:230px;flex:0 0 auto;background:linear-gradient(150deg,var(--ban),var(--ban2))}
+/* Entra COMPLETA en la pantalla, sin scroll: la foto y los espacios ceden
+   con clamp()/vh según la altura del celu, y el botón queda siempre a la vista. */
+#wel{position:fixed;inset:0;z-index:125;background:var(--linen);display:flex;flex-direction:column;overflow:hidden}
+#wel .wimg{position:relative;height:clamp(120px,26vh,240px);flex:0 0 auto;background:linear-gradient(150deg,var(--ban),var(--ban2))}
 #wel .wimg img{width:100%;height:100%;object-fit:cover}
 #wel .wimg .sh{position:absolute;inset:0;background:linear-gradient(180deg,rgba(28,22,18,0) 40%,var(--linen) 100%)}
-#wel .wbd{flex:1;padding:4px 26px calc(26px + env(safe-area-inset-bottom));text-align:center;max-width:520px;margin:0 auto;width:100%}
-#wel h2{font-family:var(--serif);font-size:31px;line-height:1.1;margin-bottom:10px}
-#wel .wsub{font-size:14px;color:var(--ink2);line-height:1.5;margin-bottom:18px}
-#wel .wlist{text-align:left;display:flex;flex-direction:column;gap:11px;margin-bottom:22px}
-#wel .wrow{display:flex;gap:12px;align-items:flex-start;background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:12px 14px}
-#wel .wrow i{font-style:normal;font-size:20px;line-height:1.2}
-#wel .wrow b{display:block;font-size:13.5px}
-#wel .wrow span{font-size:12px;color:var(--ink2);line-height:1.4}
+#wel .wbd{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;
+  padding:clamp(4px,1.4vh,12px) 22px calc(clamp(12px,2.4vh,22px) + env(safe-area-inset-bottom));
+  text-align:center;max-width:520px;margin:0 auto;width:100%}
+#wel h2{font-family:var(--serif);font-size:clamp(23px,4.2vh,31px);line-height:1.1;margin-bottom:clamp(5px,1vh,10px)}
+#wel .wsub{font-size:clamp(12.5px,1.7vh,14px);color:var(--ink2);line-height:1.45;margin-bottom:clamp(10px,2vh,18px)}
+#wel .wlist{text-align:left;display:flex;flex-direction:column;gap:clamp(6px,1.1vh,11px);margin-bottom:clamp(12px,2.4vh,22px)}
+#wel .wrow{display:flex;gap:11px;align-items:flex-start;background:var(--paper);border:1px solid var(--line);border-radius:15px;padding:clamp(8px,1.4vh,12px) 13px}
+#wel .wrow i{font-style:normal;font-size:clamp(17px,2.5vh,20px);line-height:1.2}
+#wel .wrow b{display:block;font-size:clamp(12.5px,1.8vh,13.5px)}
+#wel .wrow span{font-size:clamp(11px,1.6vh,12px);color:var(--ink2);line-height:1.35}
+#wel .btn{flex:0 0 auto}
 /* ---------- mini tutorial (v1.4.2) ---------- */
 #tut{position:fixed;inset:0;z-index:126;background:rgba(28,22,18,.66);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);display:flex;flex-direction:column;justify-content:flex-end;padding:22px 18px calc(22px + env(safe-area-inset-bottom))}
 #tut .tbox{background:var(--paper);border-radius:22px;padding:20px 20px 16px;max-width:520px;margin:0 auto;width:100%;box-shadow:0 18px 50px rgba(28,22,18,.28)}
@@ -915,7 +920,7 @@ body.fitfull #top,body.fitfull #addfab{display:none}
      · package.json y el versionName/versionCode del APK
        (los sincroniza scripts/build-web.mjs en cada npm run sync)
    Al sacar un parche: cambiar el número acá y nada más.        */
-const APP_VER='1.4.2';
+const APP_VER='1.4.3';
 
 /* ---------- utilidades ---------- */
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
@@ -975,8 +980,18 @@ function migrate(d){
   if(st.welcomed===undefined) st.welcomed=!!st.profiled;
   if(st.tutorDone===undefined) st.tutorDone=!!st.profiled;
   const s={...JSON.parse(JSON.stringify(DEF)),...d,settings:st};
-  /* claves nuevas que pueden faltar en copias viejas */
-  ['trainLogs','priceBook','stock','stockMoves','periods','cycleLogs','investments'].forEach(k=>{ if(!Array.isArray(s[k])) s[k]=[]; });
+  /* Blindaje: toda clave del estado tiene que tener la FORMA que espera el
+     código. Antes se listaban a mano las claves nuevas y era cuestión de
+     tiempo que un módulo nuevo quedara afuera y una copia vieja explotara en
+     el primer .forEach(). Ahora se saca sola de DEF: si mañana se agrega otro
+     módulo, las copias viejas lo reciben vacío y siguen andando. */
+  Object.keys(DEF).forEach(k=>{
+    if(k==='settings') return;
+    if(Array.isArray(DEF[k])){ if(!Array.isArray(s[k])) s[k]=[]; }
+    else if(DEF[k]&&typeof DEF[k]==='object'){
+      if(!s[k]||typeof s[k]!=='object'||Array.isArray(s[k])) s[k]={};
+    }
+  });
   s.investments.forEach(m=>{ if(!Array.isArray(m.hist)) m.hist=[]; });
   /* v1.4: tratamientos de medicamentos + inversiones en pareja y multimoneda */
   s.meds.forEach(m=>{
@@ -1028,10 +1043,64 @@ function load(){
   }catch(e){}
   return JSON.parse(JSON.stringify(DEF));
 }
-function save(){
+/* save() devuelve SI PUDO GUARDAR de verdad.
+   Antes se tragaba el error de cuota y solo tiraba un toast: quien importaba
+   una copia con fotos veía todo en pantalla, leía «importado ✓» (el toast de
+   error se lo pisaba el de éxito), cerraba la app… y no había quedado nada.
+   Los datos vivían solo en memoria. Ahora el que llama se entera y decide. */
+function save(callado){
+  let ok=true;
   try{ localStorage.setItem(KEY,JSON.stringify(S)); }
-  catch(e){ toast('Memoria llena — borrá alguna foto de proyecto'); }
+  catch(e){ ok=false; if(!callado) toast('Memoria llena — borrá alguna foto de proyecto'); }
   try{ pushTouch(); }catch(e){}   /* re-sincroniza los avisos en segundo plano */
+  return ok;
+}
+
+/* ---------- rescate cuando la copia no entra en la memoria ----------
+   Lo que ocupa lugar son las fotos (van en base64 adentro del JSON): las de
+   costura, las metas de inversión, el banner y la foto de perfil. El texto
+   —plata, agenda, notas— pesa nada. Antes que perder TODO, se re-comprimen
+   las fotos y se intenta de nuevo. Perder nitidez es infinitamente mejor
+   que perder los datos. */
+function achicarDataURL(src,max,q){
+  return new Promise(listo=>{
+    if(typeof src!=='string'||!src.startsWith('data:image')) return listo(src);
+    const img=new Image();
+    img.onload=()=>{
+      try{
+        const sc=Math.min(1,max/Math.max(img.width,img.height));
+        const c=document.createElement('canvas');
+        c.width=Math.max(1,Math.round(img.width*sc)); c.height=Math.max(1,Math.round(img.height*sc));
+        c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+        const out=c.toDataURL('image/jpeg',q);
+        listo(out.length<src.length?out:src);   /* si no mejora, se deja la original */
+      }catch(e){ listo(src); }
+    };
+    img.onerror=()=>listo(src);
+    img.src=src;
+  });
+}
+/* recorre el estado y comprime cada foto que encuentre */
+async function compactarFotos(s,max,q){
+  const campos=[
+    [s.settings,'photo'],[s.settings,'invBanner'],
+    ...s.sewing.map(p=>[p,'photo']),
+    ...s.sewing.flatMap(p=>Array.isArray(p.photos)?p.photos.map((_,i)=>[p.photos,i]):[]),
+    ...s.investments.map(m=>[m,'img']),
+  ];
+  for(const [obj,k] of campos){
+    if(obj&&typeof obj[k]==='string'&&obj[k].startsWith('data:image'))
+      obj[k]=await achicarDataURL(obj[k],max,q);
+  }
+}
+/* guarda; si no entra, compacta fotos en dos pasadas y reintenta */
+async function guardarConRescate(){
+  if(save(true)) return {ok:true};
+  for(const [max,q] of [[900,.6],[600,.5]]){
+    await compactarFotos(S,max,q);
+    if(save(true)) return {ok:true,achicado:true};
+  }
+  return {ok:false};
 }
 
 /* ---------- toast / animación ---------- */
@@ -4344,14 +4413,44 @@ VIEWS.ajustes={
     impF.addEventListener('change',()=>{
       const f=impF.files[0]; if(!f) return;
       const rd=new FileReader();
-      rd.onload=()=>{
+      rd.onload=async ()=>{
+        /* red de seguridad: si algo sale mal, se vuelve EXACTO a como estaba */
+        const respaldo=localStorage.getItem(KEY);
+        const anterior=S;
+        let d;
         try{
-          const d=JSON.parse(rd.result);
-          if(typeof d!=='object'||!d) throw 0;
+          d=JSON.parse(rd.result);
+          if(typeof d!=='object'||!d||Array.isArray(d)) throw 0;
           S=migrate(d);
-          save(); applyTheme(); startNotifLoop();
-          go('ajustes'); toast('Copia importada ✓');
-        }catch(e){ toast('Ese archivo no es una copia válida'); }
+        }catch(e){
+          S=anterior;
+          return dlg({title:'Ese archivo no sirve',
+            msg:'No pude leerlo como una copia de TEXMA. Fijate de elegir el archivo «texma-copia-….json» que descargaste desde Ajustes.',
+            okTxt:'Entendido',oneBtn:true});
+        }
+        const r=await guardarConRescate();
+        if(!r.ok){
+          /* NO se puede quedar a medias: en pantalla se vería todo importado
+             y en el celular no habría quedado nada */
+          S=anterior;
+          try{ if(respaldo!==null) localStorage.setItem(KEY,respaldo); }catch(e2){}
+          applyTheme(); go('ajustes');
+          return dlg({title:'La copia no entra en este celular',
+            msg:'Tiene demasiadas fotos para la memoria que da el navegador. No se importó nada y tus datos de acá quedaron intactos. Probá borrando algunas fotos de proyectos en el celular de origen y exportando de nuevo.',
+            okTxt:'Entendido',oneBtn:true});
+        }
+        applyTheme(); startNotifLoop(); paintTop(); go('ajustes');
+        /* se le muestra QUÉ entró: si algo faltara, se ve al toque */
+        const n=(a)=>Array.isArray(a)?a.length:0;
+        const partes=[
+          [n(S.finance),'movimientos'],[n(S.events),'eventos'],[n(S.tasks),'tareas'],
+          [n(S.notes),'notas'],[n(S.sewing),'trabajos de costura'],[n(S.meds),'remedios'],
+          [n(S.investments),'metas'],[n(S.recurring),'pagos'],
+        ].filter(([c])=>c>0).map(([c,t])=>`${c} ${t}`);
+        dlg({title:'¡Copia importada! ♥',
+          msg:(partes.length?'Entraron: '+partes.join(' · ')+'.':'La copia estaba vacía.')
+            +(r.achicado?' Tenía muchas fotos, así que las achiqué un poco para que entraran todas.':''),
+          okTxt:'Listo',oneBtn:true});
       };
       rd.readAsText(f);
     });
@@ -4833,7 +4932,7 @@ function showWelcome(){
       <div class="sh"></div>
     </div>
     <div class="wbd">
-      <h2>¡Bienvenida a<br>TEXMA Planner!</h2>
+      <h2>¡Bienvenida/o a<br>TEXMA Planner!</h2>
       <div class="wsub">Tu vida entera en un solo lugar, y siempre en tu celular: nada de lo que escribas sale de acá.</div>
       <div class="wlist">
         <div class="wrow"><i>💰</i><div><b>Tu plata, clara</b><span>Gastos, ingresos, pagos que vencen y metas de ahorro con foto.</span></div></div>
@@ -5020,6 +5119,27 @@ async function chequearUpdate(forzar,fresco){
   /* «Después» vale mientras no venza el plazo: vencido, el cartel vuelve siempre */
   if(st.visto===st.ver&&!forzar&&!updForzada(st)) return;
   avisoUpdate(st);
+}
+
+/* Dispara el chequeo de versión SOLO, en cada apertura, sin que la usuaria
+   tenga que ir a buscarlo a Ajustes.
+   Antes esto colgaba de que el tutorial estuviera terminado, y si alguien lo
+   dejaba a medias no se chequeaba nunca. Ahora simplemente espera a que no
+   haya ninguna pantalla del primer arranque encima (van por z-index más alto
+   y el cartel quedaría escondido detrás) y ahí pregunta. */
+let updEsperando=false;
+function primerArranqueVisible(){ return !!($('#wel')||$('#tut')||$('#prof')||$('#onb')); }
+function programarChequeoUpdate(intento){
+  if(updEsperando&&!intento) return;
+  updEsperando=true;
+  setTimeout(()=>{
+    if(primerArranqueVisible()){
+      if((intento||0)<40) return programarChequeoUpdate((intento||0)+1);  /* ~2 min de gracia */
+      updEsperando=false; return;
+    }
+    updEsperando=false;
+    chequearUpdate(false,true);   /* true = consulta fresca, sin el colchón de 6 h */
+  },intento?3000:1200);
 }
 
 /* ---------- actualización forzada ----------
@@ -5422,11 +5542,12 @@ function abrirApp(){
   try{ history.replaceState({v:'hoy'},''); }catch(e){}
   animarEntrada();
   afterOnb();                     /* bienvenida / perfil / tutorial, si faltan */
-  /* Cartel de versión nueva EN CADA APERTURA, con consulta fresca (el segundo
-     parámetro saltea el colchón de 6 h que antes lo dejaba mudo).
-     Solo espera si la usuaria está en el primer setup: esas pantallas van por
-     encima y el cartel quedaría escondido detrás. */
-  if(S.settings.profiled&&S.settings.tutorDone) setTimeout(()=>chequearUpdate(false,true),1200);
+  programarChequeoUpdate();
+  /* volver a la app después de un rato también dispara el chequeo: el celu
+     suele quedar días con TEXMA abierta en segundo plano y así se entera igual */
+  document.addEventListener('visibilitychange',()=>{
+    if(!document.hidden) programarChequeoUpdate();
+  });
   arrancarAvisos();
 }
 /* la entrada solo se anima si la app está a la vista: si el celu la tiene
