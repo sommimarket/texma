@@ -42,4 +42,8 @@
     <!-- Que los avisos sobrevivan al reinicio del celular -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.VIBRATE" />
+
+    <!-- Actualizarse sola: TEXMA baja el APK nuevo adentro de la app y lanza
+         el instalador de Android. Sin esto, Android bloquea el instalador. -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 </manifest>

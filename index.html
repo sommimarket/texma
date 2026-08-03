@@ -176,6 +176,52 @@ body.fitfull #top,body.fitfull #addfab{display:none}
 .actt span{font-size:11.5px;font-weight:700;display:block;margin-top:4px}
 .actt.run{background:linear-gradient(145deg,#FC4C02,#F2803C);border-color:transparent;color:#fff}
 .kmbig{font-family:var(--mono);font-size:34px !important;font-weight:800;text-align:center;color:#FC4C02}
+/* ---------- overlay de descarga de la actualización (v1.4.2) ---------- */
+#updv{position:fixed;inset:0;z-index:130;background:rgba(28,22,18,.62);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);display:grid;place-items:center;padding:22px}
+#updv .ubox{width:100%;max-width:390px;background:var(--paper);border-radius:26px;padding:30px 24px 24px;text-align:center;box-shadow:0 22px 60px rgba(28,22,18,.3)}
+#updv .uring{width:112px;height:112px;margin:0 auto 4px;position:relative}
+#updv .uring svg{width:100%;height:100%;transform:rotate(-90deg)}
+#updv .uring .rbg{fill:none;stroke:var(--tint);stroke-width:9}
+#updv .uring .rfg{fill:none;stroke:var(--deep);stroke-width:9;stroke-linecap:round;stroke-dasharray:301.6;stroke-dashoffset:301.6;transition:stroke-dashoffset .35s ease}
+#updv .uring.indet svg{animation:uspin 1.1s linear infinite}
+#updv .uring.indet .rfg{stroke-dasharray:75 301.6;transition:none}
+@keyframes uspin{to{transform:rotate(270deg)}}
+#updv .upct{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--mono);font-size:21px;font-weight:700;color:var(--aink)}
+#updv .uring.indet .upct{font-size:26px;animation:upulse 1.4s ease-in-out infinite}
+@keyframes upulse{0%,100%{opacity:.55}50%{opacity:1}}
+#updv h3{font-family:var(--serif);font-size:25px;line-height:1.15;margin:12px 0 6px}
+#updv .usub{font-size:12.5px;color:var(--ink2);margin-bottom:16px}
+#updv .unota{background:var(--tint);border-radius:16px;padding:14px 15px;text-align:left;font-size:12.5px;line-height:1.5;color:var(--aink)}
+#updv .unota b{display:block;font-size:13px;margin-bottom:5px}
+#updv .unota .uok{display:block;margin-top:8px;font-weight:700}
+#updv .ufoot{font-size:11.5px;color:var(--ink2);margin-top:14px}
+#updv .btn{margin-top:14px}
+/* ---------- bienvenida después de activar la licencia (v1.4.2) ---------- */
+#wel{position:fixed;inset:0;z-index:125;background:var(--linen);overflow-y:auto;display:flex;flex-direction:column}
+#wel .wimg{position:relative;height:44vh;min-height:230px;flex:0 0 auto;background:linear-gradient(150deg,var(--ban),var(--ban2))}
+#wel .wimg img{width:100%;height:100%;object-fit:cover}
+#wel .wimg .sh{position:absolute;inset:0;background:linear-gradient(180deg,rgba(28,22,18,0) 40%,var(--linen) 100%)}
+#wel .wbd{flex:1;padding:4px 26px calc(26px + env(safe-area-inset-bottom));text-align:center;max-width:520px;margin:0 auto;width:100%}
+#wel h2{font-family:var(--serif);font-size:31px;line-height:1.1;margin-bottom:10px}
+#wel .wsub{font-size:14px;color:var(--ink2);line-height:1.5;margin-bottom:18px}
+#wel .wlist{text-align:left;display:flex;flex-direction:column;gap:11px;margin-bottom:22px}
+#wel .wrow{display:flex;gap:12px;align-items:flex-start;background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:12px 14px}
+#wel .wrow i{font-style:normal;font-size:20px;line-height:1.2}
+#wel .wrow b{display:block;font-size:13.5px}
+#wel .wrow span{font-size:12px;color:var(--ink2);line-height:1.4}
+/* ---------- mini tutorial (v1.4.2) ---------- */
+#tut{position:fixed;inset:0;z-index:126;background:rgba(28,22,18,.66);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);display:flex;flex-direction:column;justify-content:flex-end;padding:22px 18px calc(22px + env(safe-area-inset-bottom))}
+#tut .tbox{background:var(--paper);border-radius:22px;padding:20px 20px 16px;max-width:520px;margin:0 auto;width:100%;box-shadow:0 18px 50px rgba(28,22,18,.28)}
+#tut .tico{width:48px;height:48px;border-radius:15px;display:grid;place-items:center;font-size:24px;background:var(--tint);margin-bottom:11px}
+#tut .tpaso{font-family:var(--mono);font-size:10.5px;letter-spacing:1.2px;text-transform:uppercase;color:var(--ink2)}
+#tut h4{font-family:var(--serif);font-size:22px;margin:5px 0 7px;line-height:1.15}
+#tut p{font-size:13.5px;color:var(--ink2);line-height:1.5}
+#tut .tdots{display:flex;gap:6px;justify-content:center;margin:16px 0 13px}
+#tut .tdots i{width:7px;height:7px;border-radius:99px;background:var(--line);transition:.2s}
+#tut .tdots i.on{background:var(--deep);width:19px}
+#tut .tbtns{display:flex;gap:9px}
+#tut .tbtns .btn{margin:0;flex:1}
+#tut .tskip{display:block;width:100%;text-align:center;margin-top:11px;background:none;border:none;color:var(--ink2);font-size:12.5px;cursor:pointer;font-family:inherit;padding:4px}
 .empty{color:var(--ink2);font-size:13px;padding:14px 2px;text-align:center;font-style:italic;font-family:var(--serif);font-size:17px}
 
 /* ---------- checkbox ---------- */
@@ -869,7 +915,7 @@ body.fitfull #top,body.fitfull #addfab{display:none}
      · package.json y el versionName/versionCode del APK
        (los sincroniza scripts/build-web.mjs en cada npm run sync)
    Al sacar un parche: cambiar el número acá y nada más.        */
-const APP_VER='1.4.1';
+const APP_VER='1.4.2';
 
 /* ---------- utilidades ---------- */
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
@@ -897,7 +943,7 @@ function weekStart(){ const d=new Date(); d.setDate(d.getDate()-((d.getDay()+6)%
 const KEY='texma';
 const DEF={
   settings:{pal:'rosa',name:'',photo:'',banner:'#F2803C',notif:false,customPal:'',cats:{in:[],out:[]},
-    onboarded:false,profiled:false,invBanner:'',invTitle:'',
+    onboarded:false,profiled:false,welcomed:false,tutorDone:false,invBanner:'',invTitle:'',
     invMembers:[{id:'p1',name:'Yo',color:'#EC1968'}],   /* la 2ª persona se suma a mano */
     shopCats:[],stockCats:[],cycleOn:true,stockOn:true,
     cycle:{avgCycle:28,avgPeriod:5},
@@ -924,6 +970,10 @@ function migrate(d){
   if(typeof st.invTitle!=='string') st.invTitle='';
   if(!/^#[0-9a-f]{6}$/i.test(st.banner||'')) st.banner='#F2803C';
   if(st.profiled===undefined) st.profiled=!!(st.name||'').trim();
+  /* v1.4.2: bienvenida + tutorial son SOLO para quien recién instala.
+     A quien ya venía usando TEXMA no se le muestran nunca. */
+  if(st.welcomed===undefined) st.welcomed=!!st.profiled;
+  if(st.tutorDone===undefined) st.tutorDone=!!st.profiled;
   const s={...JSON.parse(JSON.stringify(DEF)),...d,settings:st};
   /* claves nuevas que pueden faltar en copias viejas */
   ['trainLogs','priceBook','stock','stockMoves','periods','cycleLogs','investments'].forEach(k=>{ if(!Array.isArray(s[k])) s[k]=[]; });
@@ -4760,11 +4810,95 @@ function wireSlider(sl,onDone){
 }
 
 /* ============================================================
-   ALTA DE PERFIL · foto + nombre (la primera vez)
+   EL PRIMER ARRANQUE, EN ORDEN
+   ------------------------------------------------------------
+   onboarding (3 pantallas) → muro de licencia → y de acá en más:
+     1. bienvenida (una sola vez, recién activada la licencia)
+     2. alta de perfil (nombre, foto, color)
+     3. mini tutorial de las secciones
+   Cada paso llama al siguiente. Quien ya pasó por acá no ve nada.
 ============================================================ */
-function afterOnb(){ if(!S.settings.profiled) showProfileSetup(); }
+function afterOnb(){
+  if(!S.settings.welcomed) return showWelcome();
+  if(!S.settings.profiled) return showProfileSetup(()=>tutorial());
+  if(!S.settings.tutorDone) tutorial();
+}
 
-function showProfileSetup(){
+/* ---- 1. bienvenida ---- */
+function showWelcome(){
+  const w=document.createElement('div'); w.id='wel';
+  w.innerHTML=`
+    <div class="wimg">
+      <img src="img_welcome.jpg" alt="" onerror="this.remove()">
+      <div class="sh"></div>
+    </div>
+    <div class="wbd">
+      <h2>¡Bienvenida a<br>TEXMA Planner!</h2>
+      <div class="wsub">Tu vida entera en un solo lugar, y siempre en tu celular: nada de lo que escribas sale de acá.</div>
+      <div class="wlist">
+        <div class="wrow"><i>💰</i><div><b>Tu plata, clara</b><span>Gastos, ingresos, pagos que vencen y metas de ahorro con foto.</span></div></div>
+        <div class="wrow"><i>💗</i><div><b>Tu salud, al día</b><span>Remedios a la hora justa, entrenamiento, agua y calorías.</span></div></div>
+        <div class="wrow"><i>✂️</i><div><b>Tu trabajo, ordenado</b><span>Costura con medidas, fotos y la cuenta de cada trabajo.</span></div></div>
+      </div>
+      <button class="btn primary" id="welGo">¡Comenzar mi viaje!</button>
+    </div>`;
+  document.body.appendChild(w);
+  const g=G();
+  if(g) g.from(w.querySelectorAll('.wbd > *'),{y:18,opacity:0,duration:.45,stagger:.07,ease:'power2.out',delay:.15});
+  w.querySelector('#welGo').addEventListener('click',()=>{
+    S.settings.welcomed=true; save();
+    const cerrar=()=>{ w.remove(); if(!S.settings.profiled) showProfileSetup(()=>tutorial()); else tutorial(); };
+    if(g) g.to(w,{opacity:0,duration:.28,onComplete:cerrar}); else cerrar();
+  });
+}
+
+/* ---- 3. mini tutorial ---- */
+const TUT=[
+  {ico:'💰',k:'Finanzas',t:'Tu plata sin cuentas raras',d:'Anotá lo que entra y lo que sale, y TEXMA te arma el balance sola. Los pagos que se repiten te los recuerda antes de que venzan.'},
+  {ico:'💗',k:'Salud',t:'Que no se te pase nada',d:'Cargá tus remedios con la hora y los días del tratamiento. Después solo tildás cada toma.'},
+  {ico:'🔥',k:'Entrenamiento',t:'Tu cuerpo, sin excusas',d:'Con tu peso y altura te calcula calorías, macros y agua del día. Cada día que entrenás suma a tu racha.'},
+  {ico:'🔔',k:'Avisos',t:'TEXMA te avisa a tiempo',d:'Prendé los avisos en Perfil y suenan a la hora justa, aunque la app esté cerrada y sin internet.'},
+];
+function tutorial(){
+  if(S.settings.tutorDone) return;
+  let i=0;
+  const w=document.createElement('div'); w.id='tut';
+  document.body.appendChild(w);
+  const fin=()=>{
+    S.settings.tutorDone=true; save();
+    const g=G();
+    if(g) g.to(w,{opacity:0,duration:.25,onComplete:()=>w.remove()}); else w.remove();
+  };
+  const pintar=()=>{
+    const p=TUT[i];
+    w.innerHTML=`<div class="tbox">
+      <div class="tico">${p.ico}</div>
+      <div class="tpaso">${p.k} · ${i+1} de ${TUT.length}</div>
+      <h4>${p.t}</h4>
+      <p>${p.d}</p>
+      <div class="tdots">${TUT.map((_,n)=>`<i class="${n===i?'on':''}"></i>`).join('')}</div>
+      <div class="tbtns">
+        ${i?'<button class="btn" data-t="-1">Anterior</button>':''}
+        <button class="btn primary" data-t="1">${i===TUT.length-1?'¡Empezar!':'Siguiente'}</button>
+      </div>
+      <button class="tskip" data-t="x">Omitir tutorial</button>
+    </div>`;
+    const g=G();
+    if(g) g.from(w.querySelector('.tbox'),{y:20,opacity:0,duration:.3,ease:'power2.out'});
+    w.querySelectorAll('[data-t]').forEach(b=>b.addEventListener('click',()=>{
+      const v=b.dataset.t;
+      if(v==='x') return fin();
+      const n=i+ +v;
+      if(n>=TUT.length) return fin();
+      i=Math.max(0,n); pintar();
+    }));
+  };
+  pintar();
+  const g=G(); if(g) g.fromTo(w,{opacity:0},{opacity:1,duration:.25});
+}
+
+/* ---- 2. alta de perfil · foto + nombre ---- */
+function showProfileSetup(alTerminar){
   const w=document.createElement('div'); w.id='prof';
   let foto=S.settings.photo||'';
   const pintarFoto=()=>{
@@ -4801,16 +4935,19 @@ function showProfileSetup(){
     S.settings.banner=b.dataset.bc; applyTheme();
     w.querySelectorAll('.banc').forEach(x=>x.classList.toggle('on',x===b));
   }));
+  const seguir=()=>{ if(alTerminar) alTerminar(); };
   const cerrar=()=>{
     S.settings.name=name.value.trim();
     S.settings.photo=foto;
     S.settings.profiled=true; save(); applyTheme(); paintTop();
     const g=G();
-    if(g) g.to(w,{opacity:0,duration:.3,onComplete:()=>{ w.remove(); go('hoy'); }});
-    else { w.remove(); go('hoy'); }
+    if(g) g.to(w,{opacity:0,duration:.3,onComplete:()=>{ w.remove(); go('hoy'); seguir(); }});
+    else { w.remove(); go('hoy'); seguir(); }
   };
   w.querySelector('#pfGo').addEventListener('click',cerrar);
-  w.querySelector('#pfSkip').addEventListener('click',()=>{ S.settings.profiled=true; save(); w.remove(); });
+  w.querySelector('#pfSkip').addEventListener('click',()=>{
+    S.settings.profiled=true; save(); w.remove(); seguir();
+  });
   const g=G(); if(g) g.from(w.children,{y:14,opacity:0,duration:.4,stagger:.05,ease:'power2.out'});
 }
 
@@ -4853,13 +4990,16 @@ function updGuardar(st){
   try{ localStorage.setItem(UPDK,JSON.stringify(st)); }catch(e){}
 }
 
-async function chequearUpdate(forzar){
+async function chequearUpdate(forzar,fresco){
   if(!SUPA_URL||!SUPA_ANON) return;
   const st=updEstado();
-  /* se le pregunta al servidor cada 6 h como mucho: no tiene sentido
-     gastar datos en cada apertura, y así el free tier queda intacto */
+  /* Antes acá había un colchón de 6 h y por eso el cartel NO salía al abrir:
+     si la app había mirado hace un rato (aunque fuera antes de que publicáramos
+     la versión nueva), se quedaba con el número viejo guardado y no preguntaba
+     de nuevo. Ahora al arrancar SIEMPRE se pregunta: es un pedido de ~200 bytes,
+     una vez por apertura. El colchón queda solo para los chequeos de fondo. */
   const FRESCO=6*60*60*1000;
-  if(forzar||!(st.ts&&Date.now()-st.ts<FRESCO)){
+  if(forzar||fresco||!(st.ts&&Date.now()-st.ts<FRESCO)){
     try{
       const r=await fetch(
         `${SUPA_URL}/rest/v1/apps?id=eq.${encodeURIComponent(APP_ID)}&select=version,url_descarga`,
@@ -4909,12 +5049,125 @@ function avisoUpdate(st){
     oneBtn:forzada||!hayLink,
   },ok=>{
     st.visto=st.ver; updGuardar(st);
-    if(ok&&hayLink) abrirAfuera(st.url);
+    if(ok&&hayLink){ bajarUpdate(st); return; }   /* el overlay se encarga del resto */
     /* obligatorio de verdad: el cartel vuelve a aparecer al toque y la app
        queda detrás hasta que instale el APK nuevo (al abrirse ya actualizada,
        verCmp corta y esto no corre más) */
     if(forzada) setTimeout(()=>avisoUpdate(st),700);
   });
+}
+
+/* ============================================================
+   DESCARGA DE LA ACTUALIZACIÓN
+   ------------------------------------------------------------
+   Antes se abría el navegador de una y la usuaria quedaba sola frente
+   a los carteles de Android («archivo dañino», permisos de orígenes
+   desconocidos) sin entender nada y con miedo a seguir.
+   Ahora primero se ve un overlay que le explica QUÉ va a pasar, y el
+   APK se baja adentro de la app con barra de progreso real.
+   Cuando terminó, se le pasa el archivo al instalador de Android.
+
+   Todo tiene red de contención: si falta el plugin, si falla la bajada
+   o si falla el instalador, se cae al camino de siempre (abrir el link
+   en el navegador). El updater NUNCA puede quedar sin salida: es lo que
+   nos permite arreglar cualquier otra cosa más adelante.
+============================================================ */
+let updvT=null;
+function updOverlay(){
+  let v=$('#updv');
+  if(v) return v;
+  v=document.createElement('div'); v.id='updv';
+  v.innerHTML=`<div class="ubox">
+    <div class="uring indet" id="uRing">
+      <svg viewBox="0 0 112 112">
+        <circle class="rbg" cx="56" cy="56" r="48"/>
+        <circle class="rfg" cx="56" cy="56" r="48"/>
+      </svg>
+      <div class="upct" id="uPct">♥</div>
+    </div>
+    <h3>¡Descargando actualización!</h3>
+    <div class="usub" id="uSub">Preparando la descarga…</div>
+    <div class="unota">
+      <b>Lo que va a pasar en un ratito:</b>
+      Android te va a mostrar avisos de seguridad hablando de archivos «dañinos»
+      y te va a pedir permiso para instalar apps de origen desconocido.
+      Es lo normal en las apps que no se bajan de la tienda — TEXMA se reparte así.
+      <span class="uok">No te asustes: tocá «Instalar igual» y listo ♥</span>
+    </div>
+    <div class="ufoot" id="uFoot">Dejá TEXMA abierta mientras se baja.</div>
+  </div>`;
+  document.body.appendChild(v);
+  const g=G();
+  if(g){
+    g.fromTo(v,{opacity:0},{opacity:1,duration:.2});
+    g.fromTo(v.querySelector('.ubox'),{scale:.92,y:14},{scale:1,y:0,duration:.34,ease:'back.out(1.6)'});
+  }
+  return v;
+}
+function updCerrar(){
+  clearTimeout(updvT);
+  const v=$('#updv'); if(!v) return;
+  const g=G();
+  if(g) g.to(v,{opacity:0,duration:.2,onComplete:()=>v.remove()});
+  else v.remove();
+}
+/* pinta el avance: pct null = indeterminado (no sabemos cuánto pesa) */
+function updProgreso(pct,sub,foot){
+  const ring=$('#uRing'), pl=$('#uPct'), sb=$('#uSub'), ft=$('#uFoot');
+  if(!ring) return;
+  if(pct==null){ ring.classList.add('indet'); if(pl) pl.textContent='♥'; }
+  else{
+    ring.classList.remove('indet');
+    const p=Math.max(0,Math.min(100,pct));
+    ring.querySelector('.rfg').style.strokeDashoffset=(301.6*(1-p/100)).toFixed(1);
+    if(pl) pl.textContent=Math.round(p)+'%';
+  }
+  if(sub&&sb) sb.textContent=sub;
+  if(foot&&ft) ft.textContent=foot;
+}
+
+async function bajarUpdate(st){
+  updOverlay();
+  const LN=plug('Filesystem'), FO=plug('FileOpener');
+  /* PWA / navegador / falta algún plugin: se explica igual y se abre el link */
+  if(!NATIVO||!LN||!FO){
+    updProgreso(null,'Abriendo la descarga…','En un segundo se abre el navegador del celu.');
+    updvT=setTimeout(()=>{ abrirAfuera(st.url); updCerrar(); },2600);
+    return;
+  }
+  const nombre=`TEXMA-${st.ver}.apk`;
+  let quitar=null;
+  try{
+    updProgreso(0,'Bajando la versión '+st.ver+'…');
+    /* el progreso real llega por eventos; si el plugin no los manda,
+       queda la ruedita girando y no se rompe nada */
+    try{
+      const h=await LN.addListener('progress',ev=>{
+        if(ev&&ev.contentLength>0){
+          const p=ev.bytes/ev.contentLength*100;
+          updProgreso(p,`${(ev.bytes/1048576).toFixed(1)} MB de ${(ev.contentLength/1048576).toFixed(1)} MB`);
+        }
+      });
+      quitar=()=>{ try{ h.remove(); }catch(e){} };
+    }catch(e){ updProgreso(null,'Bajando la versión '+st.ver+'…'); }
+
+    const r=await LN.downloadFile({url:st.url,path:nombre,directory:'EXTERNAL',progress:true});
+    if(quitar) quitar();
+    const ruta=r&&(r.path||r.uri);
+    if(!ruta) throw new Error('sin ruta del archivo');
+
+    updProgreso(100,'¡Listo! Abriendo el instalador…','Ahora sí: tocá «Instalar igual» cuando Android pregunte.');
+    await new Promise(s=>setTimeout(s,900));
+    await FO.open({filePath:ruta,contentType:'application/vnd.android.package-archive'});
+    /* el instalador quedó abierto encima; se cierra el overlay al volver */
+    setTimeout(updCerrar,1500);
+  }catch(e){
+    if(quitar) quitar();
+    console.warn('[TEXMA] no pude bajar/instalar adentro de la app:',e);
+    /* plan B de toda la vida: el navegador. La actualización nunca queda trabada */
+    updProgreso(null,'Lo termino en el navegador…','Se abre la descarga del celu. Después tocá el archivo bajado.');
+    updvT=setTimeout(()=>{ abrirAfuera(st.url); updCerrar(); },2200);
+  }
 }
 
 /* el link de descarga tiene que salir al navegador del celu, no
@@ -5168,10 +5421,12 @@ function abrirApp(){
   go('hoy');
   try{ history.replaceState({v:'hoy'},''); }catch(e){}
   animarEntrada();
-  afterOnb();                     /* alta de perfil, si todavía falta */
-  /* el cartel de versión nueva espera un segundo: así no le pisa
-     el saludo ni la pantalla de perfil a quien recién entra */
-  if(S.settings.profiled) setTimeout(()=>chequearUpdate(),1200);
+  afterOnb();                     /* bienvenida / perfil / tutorial, si faltan */
+  /* Cartel de versión nueva EN CADA APERTURA, con consulta fresca (el segundo
+     parámetro saltea el colchón de 6 h que antes lo dejaba mudo).
+     Solo espera si la usuaria está en el primer setup: esas pantallas van por
+     encima y el cartel quedaría escondido detrás. */
+  if(S.settings.profiled&&S.settings.tutorDone) setTimeout(()=>chequearUpdate(false,true),1200);
   arrancarAvisos();
 }
 /* la entrada solo se anima si la app está a la vista: si el celu la tiene

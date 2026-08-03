@@ -1,6 +1,6 @@
 {
   "name": "texma",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "private": true,
   "description": "TEXMA · Planner personal — PWA + APK (Capacitor)",
   "scripts": {
@@ -12,9 +12,11 @@
     "deploy": "node scripts/deploy.mjs"
   },
   "dependencies": {
+    "@capacitor-community/file-opener": "^7.0.1",
     "@capacitor/android": "^7.0.0",
     "@capacitor/app": "^7.0.0",
     "@capacitor/core": "^7.0.0",
+    "@capacitor/filesystem": "^7.1.8",
     "@capacitor/local-notifications": "^7.0.0",
     "@capacitor/preferences": "^7.0.0",
     "@capacitor/splash-screen": "^7.0.0",
